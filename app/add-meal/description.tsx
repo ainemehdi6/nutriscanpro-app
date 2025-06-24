@@ -27,7 +27,6 @@ export default function DescriptionScreen() {
     setLoading(true);
     try {
       const result = await apiService.analyseMealDescription(description.trim());
-      console.log('result', result);
 
       if (result.foods) {
         router.push({

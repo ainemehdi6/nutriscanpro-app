@@ -98,7 +98,6 @@ export default function ResultsScreen() {
   };
 
   const getTotalNutrition = () => {
-    console.log('Calculating total nutrition for mealItems:', mealItems);
     return mealItems.reduce(
       (total, item) => ({
         calories: total.calories + (item.calories ?? 0),
