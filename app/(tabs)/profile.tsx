@@ -95,31 +95,31 @@ export default function ProfileScreen() {
             <View style={styles.settingContent}>
               <Text style={styles.settingTitle}>Daily Goals</Text>
               <Text style={styles.settingSubtitle}>
-                {user?.goals?.calories 
-                  ? `${user.goals.calories} calories daily`
+                {user?.goals?.[0]?.calories 
+                  ? `${user.goals[0].calories} calories daily`
                   : 'Set your daily nutrition targets'
                 }
               </Text>
             </View>
           </TouchableOpacity>
 
-          {user?.goals && (
+          {user?.goals?.[0] && (
             <View style={styles.goalsContainer}>
               <View style={styles.goalItem}>
                 <Text style={styles.goalLabel}>Calories</Text>
-                <Text style={styles.goalValue}>{user.goals.calories}</Text>
+                <Text style={styles.goalValue}>{user.goals[0]?.calories}</Text>
               </View>
               <View style={styles.goalItem}>
                 <Text style={styles.goalLabel}>Protein</Text>
-                <Text style={styles.goalValue}>{user.goals.protein}g</Text>
+                <Text style={styles.goalValue}>{user.goals[0]?.protein}g</Text>
               </View>
               <View style={styles.goalItem}>
                 <Text style={styles.goalLabel}>Carbs</Text>
-                <Text style={styles.goalValue}>{user.goals.carbs}g</Text>
+                <Text style={styles.goalValue}>{user.goals[0]?.carbs}g</Text>
               </View>
               <View style={styles.goalItem}>
                 <Text style={styles.goalLabel}>Fat</Text>
-                <Text style={styles.goalValue}>{user.goals.fat}g</Text>
+                <Text style={styles.goalValue}>{user.goals[0]?.fat}g</Text>
               </View>
             </View>
           )}

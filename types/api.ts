@@ -38,6 +38,7 @@ export type Food = {
   protein?: number;
   servingSize?: number;
   servingUnit?: string;
+  quantity?: number;
   createdAt: string;
   updatedAt: string;
 };
@@ -73,7 +74,6 @@ export interface AddItemRequest {
 
 export interface AddItemResponse {
   success: boolean;
-  item?: FoodItem;
   addedItems?: Meal[];
   message?: string;
   totalNutrition?: 
@@ -83,6 +83,12 @@ export interface AddItemResponse {
     carbs: number;
     fat: number;
   };
+}
+
+export interface AnalyseMealResponse {
+  success: boolean;
+  foods?: Food[];
+  message?: string;
 }
 
 export type MealType = 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK';

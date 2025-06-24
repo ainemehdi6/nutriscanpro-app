@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import { User, AuthResponse, Meal, AddItemRequest, AddItemResponse, MealType } from '@/types/api';
+import { User, AuthResponse, Meal, AddItemRequest, AddItemResponse, MealType, AnalyseMealResponse, Food } from '@/types/api';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://your-api-domain.com/api';
 
@@ -138,6 +138,20 @@ class ApiService {
     });
   }
 
+  async analyseMealDescription(description: string): Promise<AnalyseMealResponse> {
+    return this.makeRequest<AddItemResponse>(`/ai-analysis/text`, {
+      method: 'POST',
+      body: JSON.stringify({ description }),
+    });
+  }
+
+  async addFoodsToMealFromAiAnalyste(mealId: string, foods: Food[]): Promise<AnalyseMealResponse> {
+    return this.makeRequest<AddItemResponse>(`/meals/${mealId}/add-new-foods`, {
+      method: 'POST',
+      body: JSON.stringify({ foods }),
+    });
+  }
+  
   // User Profile
   async updateProfile(updates: Partial<User>): Promise<User> {
     return this.makeRequest<User>('/user/profile', {

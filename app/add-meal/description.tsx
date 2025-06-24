@@ -26,17 +26,18 @@ export default function DescriptionScreen() {
 
     setLoading(true);
     try {
-      const result = await apiService.addItemByDescription(mealId!, description.trim());
+      const result = await apiService.analyseMealDescription(description.trim());
       console.log('result', result);
 
-      if (result.totalNutrition && result.addedItems) {
+      if (result.foods) {
         router.push({
           pathname: '/add-meal/results',
           params: {
             mealId: mealId,
             selectedDate: selectedDate,
+            type: type,
             method: 'description',
-            data: JSON.stringify(result.addedItems),
+            data: JSON.stringify(result.foods),
           },
         });
       } else {

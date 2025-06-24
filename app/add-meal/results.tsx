@@ -3,26 +3,29 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'rea
 import { router, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, Check, Edit3, Trash2 } from 'lucide-react-native';
-import { FoodItem, MealType } from '@/types/api';
+import { Food, MealType } from '@/types/api';
 import Button from '@/components/Button';
+import { apiService } from '@/services/api';
 
 export default function ResultsScreen() {
-  const { type, method, data } = useLocalSearchParams<{
+  const { mealId, type, method, data, selectedDate } = useLocalSearchParams<{
+    mealId?: string;
     type: MealType;
     method: string;
     data: string;
+    selectedDate: string;
   }>();
   
-  const [items, setItems] = useState<FoodItem[]>([]);
+  const [mealItems, setMealItems] = useState<Food[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (data) {
       try {
         const parsedItems = JSON.parse(data);
-        setItems(parsedItems);
+        setMealItems(parsedItems);
       } catch (error) {
-        console.error('Failed to parse items data:', error);
+        console.error('Failed to parse mealItems data:', error);
         Alert.alert('Error', 'Failed to load meal data');
         router.back();
       }
@@ -33,40 +36,53 @@ export default function ResultsScreen() {
     router.back();
   };
 
-  const handleConfirm = async () => {
+  const handleConfirm = async (mealId: string, foods: Food[]) => {
     setLoading(true);
-    // In a real app, you would save the confirmed items to the meal
-    // For now, we'll just simulate the process and go back to home
-    setTimeout(() => {
+    const succes = await apiService.addFoodsToMealFromAiAnalyste(mealId, foods);
+
+    if (!succes) {
       setLoading(false);
-      Alert.alert(
-        'Meal Added!',
-        `Successfully added ${items.length} item(s) to your ${type}.`,
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-            router.push({
-              pathname: '/(tabs)',
-              params: {
-                refresh: 'true',
-              },
-            });
+      Alert.alert('Error', 'Failed to add meal items. Please try again.');
+      return;
+    }
+    setLoading(false);
+
+    router.push({
+          pathname: '/(tabs)',
+          params: {
+            selectedDate: selectedDate,
           },
-          },
-        ]
-      );
-    }, 1000);
+    });
+    /*
+    Alert.alert(
+      'Meal Added!',
+      `Successfully added ${mealItems.length} item(s) to your ${type}.`,
+      [
+        {
+          text: 'OK',
+          onPress: () => {
+          router.push({
+            pathname: '/(tabs)',
+            params: {
+              refresh: 'true',
+              selectedDate: selectedDate,
+            },
+          });
+        },
+        },
+      ]
+    );
+    */
   };
 
   const handleRemoveItem = (index: number) => {
-    const newItems = items.filter((_, i) => i !== index);
-    setItems(newItems);
+    const newItems = mealItems.filter((_, i) => i !== index);
+    setMealItems(newItems);
     
     if (newItems.length === 0) {
       Alert.alert(
-        'No Items',
-        'All items have been removed. Would you like to try again?',
+        'No mealItems',
+        'All mealItems have been removed. Would you like to try again?',
         [
           {
             text: 'Try Again',
@@ -82,12 +98,13 @@ export default function ResultsScreen() {
   };
 
   const getTotalNutrition = () => {
-    return items.reduce(
+    console.log('Calculating total nutrition for mealItems:', mealItems);
+    return mealItems.reduce(
       (total, item) => ({
-        calories: total.calories + item.calories,
-        protein: total.protein + item.protein,
-        carbs: total.carbs + item.carbs,
-        fat: total.fat + item.fat,
+        calories: total.calories + (item.calories ?? 0),
+        protein: total.protein + (item.protein ?? 0),
+        carbs: total.carbs + (item.carbs ?? 0),
+        fat: total.fat + (item.fat ?? 0),
       }),
       { calories: 0, protein: 0, carbs: 0, fat: 0 }
     );
@@ -123,7 +140,7 @@ export default function ResultsScreen() {
       <ScrollView style={styles.content}>
         <View style={styles.summaryCard}>
           <Text style={styles.methodLabel}>Adding to {getMealLabel()}</Text>
-          <Text style={styles.itemCount}>{items.length} item(s) found</Text>
+          <Text style={styles.itemCount}>{mealItems.length} item(s) found</Text>
           
           <View style={styles.nutritionSummary}>
             <View style={styles.caloriesTotal}>
@@ -149,9 +166,9 @@ export default function ResultsScreen() {
         </View>
 
         <View style={styles.itemsSection}>
-          <Text style={styles.sectionTitle}>Detected Items</Text>
+          <Text style={styles.sectionTitle}>Detected {getMealLabel()} Meals</Text>
           
-          {items.map((item, index) => (
+          {mealItems.map((item, index) => (
             <View key={index} style={styles.itemCard}>
               <View style={styles.itemHeader}>
                 <Text style={styles.itemName}>{item.name}</Text>
@@ -164,7 +181,7 @@ export default function ResultsScreen() {
               </View>
               
               <Text style={styles.itemQuantity}>
-                {item.quantity} {item.unit}
+                {item.quantity} {item.servingUnit}
               </Text>
               
               <View style={styles.itemNutrition}>
@@ -191,13 +208,13 @@ export default function ResultsScreen() {
 
         <View style={styles.actionsSection}>
           <Text style={styles.confirmText}>
-            Review the detected items above. Remove any incorrect items, then confirm to add them to your meal.
+            Review the detected {getMealLabel()} Meals above. Remove any incorrect mealItems, then confirm to add them to your meal.
           </Text>
           
           <Button
             title={loading ? 'Adding to Meal...' : 'Confirm & Add to Meal'}
-            onPress={handleConfirm}
-            disabled={loading || items.length === 0}
+            onPress={() => handleConfirm(mealId || '', mealItems)}
+            disabled={loading || mealItems.length === 0}
             style={styles.confirmButton}
           />
         </View>

@@ -25,8 +25,7 @@ export default function HomeScreen() {
   try {
     const mealsByDate = await apiService.getMealsByDate(date);
     if (!mealsByDate || mealsByDate.length === 0) {
-      Alert.alert('No meals found', 'You have not added any meals for this date.');
-      return;
+      setMeals([]);
     }
 
     const mealsWithCalories = Object.values(mealsByDate).map(meal => ({
@@ -57,7 +56,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     loadMealsByDate(selectedDate);
-  }, [selectedDate, meals]);
+  }, [selectedDate]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -68,9 +67,7 @@ export default function HomeScreen() {
   const getTotal = (key: 'carbs' | 'protein'): number => {
     return meals.reduce((total, meal) => {
       return total + meal.items.reduce((sum, item) => {
-        const value = item.food?.[key];
-        const size = item.food?.servingSize;
-        return value && size ? sum + (item.quantity * value) / size : sum;
+        return sum + calculateNutrient(key, item.quantity, item.food);
       }, 0);
     }, 0);
   };
@@ -90,7 +87,11 @@ export default function HomeScreen() {
       newDate.setDate(prev.getDate() + (direction === 'next' ? 1 : -1));
       return newDate;
     });
-    loadMealsByDate(selectedDate);
+  };
+
+  const calculateNutrient = (key: 'calories' | 'carbs' | 'protein', quantity: number, food?: any) => {
+    if (!food || typeof food[key] !== 'number' || typeof food.servingSize !== 'number') return 0;
+    return (quantity * food[key]) / food.servingSize;
   };
 
   const formatDate = (date: Date) =>
