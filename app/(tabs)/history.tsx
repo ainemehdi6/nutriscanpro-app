@@ -38,6 +38,7 @@ export default function HistoryScreen() {
     let protein = 0;
     let carbs = 0;
     let fat = 0;
+    let calories = 0;
 
     meal.items.forEach(item => {
       const { food, quantity } = item;
@@ -46,12 +47,14 @@ export default function HistoryScreen() {
       protein += (food.protein ?? 0) * ratio;
       carbs += (food.carbs ?? 0) * ratio;
       fat += (food.fat ?? 0) * ratio;
+      calories += (food.calories ?? 0) * ratio;
     });
 
     return {
       protein: protein.toFixed(0),
       carbs: carbs.toFixed(0),
       fat: fat.toFixed(0),
+      calories: calories.toFixed(0),
     };
   };
 
@@ -163,14 +166,17 @@ export default function HistoryScreen() {
                           {meal.items.length} items
                         </Text>
                       </View>
-                    </View>
-                    
-                    <View style={styles.mealStats}>
-                      <Text style={styles.caloriesText}>{meal.totalCalories} Kcal</Text>
-                      <ChevronRight size={16} color="#9CA3AF" />
-                    </View>
+                    </View>               
+                    {(() => {
+                      const macros = getMacros(meal);
+                      return (
+                        <View style={styles.mealStats}>
+                          <Text style={styles.caloriesText}>{macros.calories} Kcal</Text>
+                          <ChevronRight size={16} color="#9CA3AF" />
+                        </View>
+                      );
+                    })()}
                   </View>
-
                   {(() => {
                     const macros = getMacros(meal);
                     return (

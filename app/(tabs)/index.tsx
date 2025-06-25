@@ -64,7 +64,7 @@ export default function HomeScreen() {
     setRefreshing(false);
   };
 
-  const getTotal = (key: 'carbs' | 'protein'): number => {
+  const getTotal = (key: 'carbs' | 'protein' | 'fat'): number => {
     return meals.reduce((total, meal) => {
       return total + meal.items.reduce((sum, item) => {
         return sum + calculateNutrient(key, item.quantity, item.food);
@@ -72,7 +72,7 @@ export default function HomeScreen() {
     }, 0);
   };
 
-  const getGoalValue = (key: 'calories' | 'carbs' | 'protein') => {
+  const getGoalValue = (key: 'calories' | 'carbs' | 'protein' | 'fat') => {
     const lastGoal = user?.goals?.slice(-1)[0];
     return lastGoal?.[key];
   };
@@ -89,7 +89,7 @@ export default function HomeScreen() {
     });
   };
 
-  const calculateNutrient = (key: 'calories' | 'carbs' | 'protein', quantity: number, food?: any) => {
+  const calculateNutrient = (key: 'calories' | 'carbs' | 'protein' | 'fat', quantity: number, food?: any) => {
     if (!food || typeof food[key] !== 'number' || typeof food.servingSize !== 'number') return 0;
     return (quantity * food[key]) / food.servingSize;
   };
@@ -111,29 +111,37 @@ export default function HomeScreen() {
         <View style={styles.headerContent}>
           <Text style={styles.greeting}>Hello, {user?.name}!</Text>
           <Text style={styles.date}>{formatDate(selectedDate)}</Text>
-
-          <View style={styles.headerStats}>
+          <View style={[styles.headerStats, { justifyContent: 'center' }]}>
             <View style={styles.caloriesCard}>
               <Text style={styles.caloriesLabel}>Calories</Text>
-              <Text style={styles.caloriesValue}>{meals.reduce((t, m) => t + (m.totalCalories || 0), 0).toFixed(0)}Kcal</Text>
+              <Text style={styles.caloriesValue}>
+                {meals.reduce((t, m) => t + (m.totalCalories || 0), 0).toFixed(0)} Kcal
+              </Text>
               {getGoalValue('calories') && (
                 <Text style={styles.caloriesGoal}>of {getGoalValue('calories')} Kcal</Text>
               )}
             </View>
-
-            <View style={styles.caloriesCard}>
+          </View>
+          <View style={[styles.headerStats]}>
+            <View style={styles.macrosCard}>
               <Text style={styles.caloriesLabel}>Carbs</Text>
               <Text style={styles.caloriesValue}>{getTotal('carbs').toFixed(0)}g</Text>
               {getGoalValue('carbs') && (
                 <Text style={styles.caloriesGoal}>of {getGoalValue('carbs')}g</Text>
               )}
             </View>
-
-            <View style={styles.caloriesCard}>
+            <View style={styles.macrosCard}>
               <Text style={styles.caloriesLabel}>Protein</Text>
               <Text style={styles.caloriesValue}>{getTotal('protein').toFixed(0)}g</Text>
               {getGoalValue('protein') && (
                 <Text style={styles.caloriesGoal}>of {getGoalValue('protein')}g</Text>
+              )}
+            </View>
+            <View style={styles.macrosCard}>
+              <Text style={styles.caloriesLabel}>Fats</Text>
+              <Text style={styles.caloriesValue}>{getTotal('fat').toFixed(0)}g</Text>
+              {getGoalValue('fat') && (
+                <Text style={styles.caloriesGoal}>of {getGoalValue('fat')}g</Text>
               )}
             </View>
           </View>
@@ -183,14 +191,17 @@ export default function HomeScreen() {
                     <View key={index} style={styles.foodItem}>
                       <Text style={styles.foodName}>{item.quantity}{item.unit} of {item.food?.name}</Text>
                       <Text style={styles.foodCalories}>
+                        {item.food?.calories && item.food?.servingSize 
+                          ? `${((item.quantity * item.food.calories) / item.food.servingSize).toFixed(0)} Kcal | ` 
+                          : ''}
                         {item.food?.carbs && item.food?.servingSize
                           ? `${((item.quantity * item.food.carbs) / item.food.servingSize).toFixed(0)}g of Carbs | `
                           : ''}
                         {item.food?.protein && item.food?.servingSize 
                           ? `${((item.quantity * item.food.protein) / item.food.servingSize).toFixed(0)}g of Protein | ` 
                           : ''}
-                        {item.food?.calories && item.food?.servingSize 
-                          ? `${((item.quantity * item.food.calories) / item.food.servingSize).toFixed(0)}Kcal` 
+                        {item.food?.fat && item.food?.servingSize 
+                          ? `${((item.quantity * item.food.fat) / item.food.servingSize).toFixed(0)}g of Fats` 
                           : ''}
                       </Text>
                     </View>
@@ -212,7 +223,7 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingTop: 60,
-    paddingBottom: 24,
+    paddingBottom: 10,
     paddingHorizontal: 20,
   },
   headerContent: {
@@ -220,16 +231,16 @@ const styles = StyleSheet.create({
   },
   headerStats: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
-    width: '100%',
-    marginTop: 16,
+    gap: 12,
   },
   dateNavigation:  {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    marginTop: 25,
+    marginTop: 10,
   },
   greeting: {
     fontSize: 24,
@@ -240,14 +251,23 @@ const styles = StyleSheet.create({
   date: {
     fontSize: 14,
     color: 'rgba(255, 255, 255, 0.8)',
-    marginBottom: 20,
+    marginBottom: 10,
   },
   caloriesCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderRadius: 16,
-    padding: 16,
-    alignItems: 'center',
-    width: '30%',
+    borderRadius: 12,
+    padding: 12,
+    width: '45%', // Two cards per row (responsive)
+    minWidth: 150,
+    marginBottom: 8,
+  },
+  macrosCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: 12,
+    padding: 12,
+    width: '30%', // Two cards per row (responsive)
+    minWidth: 80,
+    marginBottom: 8,
   },
   caloriesLabel: {
     fontSize: 14,
