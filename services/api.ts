@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import { User, AuthResponse, Meal, AddItemRequest, AddItemResponse, MealType, AnalyseMealResponse, Food } from '@/types/api';
+import { User, AuthResponse, Meal, AddItemRequest, AddItemResponse, MealType, AnalyseMealResponse, Food, Goals } from '@/types/api';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://nutriscanpro-api.onrender.com/api';
 
@@ -30,8 +30,6 @@ class ApiService {
       headers['Authorization'] = `Bearer ${this.token}`;
     }
 
-    console.log('Making API Request:', { url, options, headers });
-
     try {
       const response = await fetch(url, {
         ...options,
@@ -40,7 +38,6 @@ class ApiService {
           ...(options.headers as any),
         },
       });
-      console.log('API Request:', response);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -152,6 +149,13 @@ class ApiService {
     return this.makeRequest<User>('/user/profile', {
       method: 'PUT',
       body: JSON.stringify(updates),
+    });
+  }
+
+  async updateUserGoals(goals: Partial<Goals>): Promise<Goals> {
+    return this.makeRequest<Goals>('/goals', {
+      method: 'POST',
+      body: JSON.stringify(goals),
     });
   }
 }

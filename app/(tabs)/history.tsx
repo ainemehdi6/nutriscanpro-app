@@ -13,7 +13,6 @@ export default function HistoryScreen() {
   const loadMealHistory = async () => {
     try {
       const history = await apiService.getMealHistory();
-      console.log('Meal history loaded:', history);
       setMeals(history);
     } catch (error) {
       console.error('Failed to load meal history:', error);
@@ -115,8 +114,6 @@ export default function HistoryScreen() {
   };
 
   const groupedMeals = groupMealsByDate();
-
-  console.log('Grouped meals:', groupedMeals);
 
   return (
     <View style={styles.container}>

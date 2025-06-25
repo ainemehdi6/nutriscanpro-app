@@ -1,14 +1,24 @@
 import { useState } from 'react';
+import { Modal, TextInput, Keyboard } from 'react-native';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { User, Settings, Target, LogOut, Edit3, Mail } from 'lucide-react-native';
+import { User, Settings, Target, LogOut, Edit3, Mail, Weight } from 'lucide-react-native';
 import { useAuth } from '@/hooks/useAuth';
+import { apiService } from '@/services/api';
 import Button from '@/components/Button';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [goalModalVisible, setGoalModalVisible] = useState(false);
+  const [weight, setWeight] = useState('');
+  const [height, setHeight] = useState('');
+  const [age, setAge] = useState('');
+  const [gender, setGender] = useState('');
+  const [calculatedCalories, setCalculatedCalories] = useState<number | null>(null);
+  const [macros, setMacros] = useState({ protein: 0, carbs: 0, fats: 0 });
+
 
   const handleLogout = async () => {
     Alert.alert(
@@ -40,9 +50,97 @@ export default function ProfileScreen() {
     Alert.alert('Coming Soon', 'Profile editing will be available soon!');
   };
 
+  const calculateCalories = () => {
+    Keyboard.dismiss();
+
+    if (!weight || !height || !age || !gender) {
+      Alert.alert('Error', 'Please fill all fields');
+      return;
+    }
+
+    const w = parseFloat(weight);
+    const h = parseFloat(height);
+    const a = parseFloat(age);
+
+    let bmr = gender === 'male'
+      ? 10 * w + 6.25 * h - 5 * a + 5
+      : 10 * w + 6.25 * h - 5 * a - 161;
+
+    const calories = Number(bmr.toFixed(0));
+    setCalculatedCalories(calories);
+
+    const proteinCalories = calories * 0.3;
+    const carbsCalories = calories * 0.4;
+    const fatsCalories = calories * 0.3;
+
+    const proteinGrams = Math.round(proteinCalories / 4);
+    const carbsGrams = Math.round(carbsCalories / 4);
+    const fatsGrams = Math.round(fatsCalories / 9);
+
+    setMacros({
+      protein: proteinGrams,
+      carbs: carbsGrams,
+      fats: fatsGrams,
+    });
+  };
+  
+  const calculateMacros = (calories: number) => {
+    const protein = Math.round((calories * 0.3) / 4);
+    const carbs = Math.round((calories * 0.4) / 4);
+    const fats = Math.round((calories * 0.3) / 9);
+    return { protein, carbs, fats };
+  };
+
+  type GoalButtonProps = {
+    label: string;
+    calorieMultiplier: number;
+    baseCalories: number;
+    onPress: () => void;
+  };
+
+  const updateUserGoals = async (calculatedCalories: number, calorieMultiplier: number) => {
+    setLoading(true);
+    const calories = Math.round(calculatedCalories * calorieMultiplier);
+    const { protein, carbs, fats } = calculateMacros(calories);
+
+    try {
+      const goals = await apiService.updateUserGoals({
+        calories,
+        protein,
+        carbs,
+        fat: fats,
+      });
+      if (goals && user?.goals) {
+        user.goals[user.goals.length - 1] = goals;
+      }
+      Alert.alert('Success', 'Goals updated successfully!');
+      setGoalModalVisible(false);
+      } catch (error) {
+        console.error('Failed to load meals:', error);
+        Alert.alert('Error', "Failed to load meals for selected date");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+  const GoalButton = ({ label, calorieMultiplier, baseCalories, onPress }: GoalButtonProps) => {
+    const calories = Math.round(baseCalories * calorieMultiplier);
+    const { protein, carbs, fats } = calculateMacros(calories);
+
+    return (
+      <TouchableOpacity style={styles.goalButtonStyle} onPress={onPress}>
+        <Text>
+          {label} ({calories} kcal)
+        </Text>
+        <Text>
+          {carbs}g Carbs | {protein}g Protein | {fats}g Fats
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+  
   const handleEditGoals = () => {
-    // TODO: Implement goals editing screen
-    Alert.alert('Coming Soon', 'Goal editing will be available soon!');
+    setGoalModalVisible(true);
   };
 
   return (
@@ -95,8 +193,8 @@ export default function ProfileScreen() {
             <View style={styles.settingContent}>
               <Text style={styles.settingTitle}>Daily Goals</Text>
               <Text style={styles.settingSubtitle}>
-                {user?.goals?.[0]?.calories 
-                  ? `${user.goals[0].calories} calories daily`
+                {user?.goals?.[user.goals.length - 1]?.calories 
+                  ? `${user.goals[user.goals.length - 1].calories} calories daily`
                   : 'Set your daily nutrition targets'
                 }
               </Text>
@@ -107,19 +205,19 @@ export default function ProfileScreen() {
             <View style={styles.goalsContainer}>
               <View style={styles.goalItem}>
                 <Text style={styles.goalLabel}>Calories</Text>
-                <Text style={styles.goalValue}>{user.goals[0]?.calories}</Text>
+                <Text style={styles.goalValue}>{user.goals[user.goals.length - 1]?.calories}</Text>
               </View>
               <View style={styles.goalItem}>
                 <Text style={styles.goalLabel}>Protein</Text>
-                <Text style={styles.goalValue}>{user.goals[0]?.protein}g</Text>
+                <Text style={styles.goalValue}>{user.goals[user.goals.length - 1]?.protein}g</Text>
               </View>
               <View style={styles.goalItem}>
                 <Text style={styles.goalLabel}>Carbs</Text>
-                <Text style={styles.goalValue}>{user.goals[0]?.carbs}g</Text>
+                <Text style={styles.goalValue}>{user.goals[user.goals.length - 1]?.carbs}g</Text>
               </View>
               <View style={styles.goalItem}>
                 <Text style={styles.goalLabel}>Fat</Text>
-                <Text style={styles.goalValue}>{user.goals[0]?.fat}g</Text>
+                <Text style={styles.goalValue}>{user.goals[user.goals.length - 1]?.fat}g</Text>
               </View>
             </View>
           )}
@@ -149,6 +247,127 @@ export default function ProfileScreen() {
           />
         </View>
       </ScrollView>
+      <Modal
+        visible={goalModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setGoalModalVisible(false)}
+      >
+        <View style={{
+          flex: 1,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}>
+          <View style={{
+            width: '90%',
+            backgroundColor: 'white',
+            padding: 20,
+            borderRadius: 16,
+          }}>
+            <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10 }}>Set Your Goals</Text>
+
+            <View style={{ flexDirection: 'row', marginBottom: 16 }}>
+              <TouchableOpacity
+                onPress={() => setGender('male')}
+                style={{
+                  flex: 1,
+                  padding: 12,
+                  borderRadius: 8,
+                  backgroundColor: gender === 'male' ? '#8B5CF6' : '#E5E7EB',
+                  marginRight: 8,
+                }}
+              >
+                <Text style={{ color: gender === 'male' ? 'white' : '#374151', textAlign: 'center' }}>
+                  Male
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => setGender('female')}
+                style={{
+                  flex: 1,
+                  padding: 12,
+                  borderRadius: 8,
+                  backgroundColor: gender === 'female' ? '#8B5CF6' : '#E5E7EB',
+                }}
+              >
+                <Text style={{ color: gender === 'female' ? 'white' : '#374151', textAlign: 'center' }}>
+                  Female
+                </Text>
+              </TouchableOpacity>
+            </View>
+          
+            <TextInput
+              placeholder="Weight (kg)"
+              placeholderTextColor="#999"
+              value={weight}
+              onChangeText={setWeight}
+              keyboardType="numeric"
+              style={styles.inputStyle}
+            />
+            <TextInput
+              placeholder="Height (cm)"
+              placeholderTextColor="#999"
+              value={height}
+              onChangeText={setHeight}
+              keyboardType="numeric"
+              style={styles.inputStyle}
+            />
+            <TextInput
+              placeholder="Age"
+              placeholderTextColor="#999"
+              value={age}
+              onChangeText={setAge}
+              keyboardType="numeric"
+              style={styles.inputStyle}
+            />
+
+            <TouchableOpacity onPress={calculateCalories} style={styles.buttonStyle}>
+              <Text style={{ color: 'white', fontWeight: 'bold' }}>Calculate</Text>
+            </TouchableOpacity>
+
+            {calculatedCalories && (
+              <View style={{ marginTop: 20 }}>
+                <Text style={{ fontWeight: '600' }}>
+                  Based on your inputs, your daily calorie needs are:
+                </Text>
+                <Text style={{ fontSize: 24, color: '#8B5CF6', fontWeight: 'bold' }}>
+                  {calculatedCalories} kcal
+                </Text>
+                <Text style={{ marginTop: 10 }}>Choose a goal:</Text>
+
+                <GoalButton
+                  label="Lose Weight"
+                  calorieMultiplier={0.85}
+                  baseCalories={calculatedCalories}
+                  onPress={() => updateUserGoals(calculatedCalories, 0.85)}
+                />
+                <GoalButton
+                  label="Maintain Weight"
+                  calorieMultiplier={1}
+                  baseCalories={calculatedCalories}
+                  onPress={() => updateUserGoals(calculatedCalories, 1)}
+                />
+                <GoalButton
+                  label="Gain Weight"
+                  calorieMultiplier={1.15}
+                  baseCalories={calculatedCalories}
+                  onPress={() => updateUserGoals(calculatedCalories, 1.15)}
+                />
+              </View>
+            )}
+
+
+            <TouchableOpacity
+              onPress={() => setGoalModalVisible(false)}
+              style={{ marginTop: 20, alignSelf: 'center' }}
+            >
+              <Text style={{ color: '#EF4444', fontWeight: 'bold' }}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -266,4 +485,23 @@ const styles = StyleSheet.create({
   logoutButton: {
     borderColor: '#EF4444',
   },
+  inputStyle: {
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 12,
+  },
+  buttonStyle : {
+    backgroundColor: '#8B5CF6',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  goalButtonStyle : {
+    padding: 12,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 8,
+    marginTop: 8,
+  }, 
 });

@@ -2,14 +2,14 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  goals?: [
-    {
-    calories: number;
-    protein: number;
-    carbs: number;
-    fat: number;
-    }
-  ];
+  goals?: Goals[]
+}
+
+export interface Goals {
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
 }
 
 export interface AuthResponse {

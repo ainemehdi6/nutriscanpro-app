@@ -23,7 +23,6 @@ export default function ResultsScreen() {
     if (data) {
       try {
         const parsedItems = JSON.parse(data);
-        console.log('Parsed mealItems:', parsedItems);
         setMealItems(parsedItems);
       } catch (error) {
         console.error('Failed to parse mealItems data:', error);
@@ -90,12 +89,10 @@ export default function ResultsScreen() {
     let calories = 0;
 
     const ratio = (food.quantity ?? 1) / (food.servingSize ?? 1);
-    console.log('Calculating macros for food:', food.name, 'with ratio:', ratio);
     protein = (food.protein ?? 0) * ratio;
     carbs = (food.carbs ?? 0) * ratio;
     fat = (food.fat ?? 0) * ratio;
     calories = (food.calories ?? 0) * ratio;
-    console.log('Calculated macros:', { protein, carbs, fat, calories });
     return {
       protein: protein.toFixed(0),
       carbs: carbs.toFixed(0),

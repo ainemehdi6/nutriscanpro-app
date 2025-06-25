@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8FAFC',
   },
   header: {
-    paddingTop: 60,
+    paddingTop: 50,
     paddingBottom: 10,
     paddingHorizontal: 20,
   },
@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 12,
     width: '30%', // Two cards per row (responsive)
-    minWidth: 80,
+    minWidth: 100,
     marginBottom: 8,
   },
   caloriesLabel: {
