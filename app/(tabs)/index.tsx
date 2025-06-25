@@ -181,7 +181,7 @@ export default function HomeScreen() {
                 <View style={styles.mealItems}>
                   {meal.items.map((item, index) => (
                     <View key={index} style={styles.foodItem}>
-                      <Text style={styles.foodName}>{item.food?.name}</Text>
+                      <Text style={styles.foodName}>{item.quantity}{item.unit} of {item.food?.name}</Text>
                       <Text style={styles.foodCalories}>
                         {item.food?.carbs && item.food?.servingSize
                           ? `${((item.quantity * item.food.carbs) / item.food.servingSize).toFixed(0)}g of Carbs | `

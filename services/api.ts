@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 import { User, AuthResponse, Meal, AddItemRequest, AddItemResponse, MealType, AnalyseMealResponse, Food } from '@/types/api';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://your-api-domain.com/api';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://nutriscanpro-api.onrender.com/api';
 
 class ApiService {
   private token: string | null = null;
@@ -20,20 +20,27 @@ class ApiService {
   ): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
     
-    const headers: { [key: string]: string } = {
-      'Content-Type': 'application/json',
-      ...(options.headers as { [key: string]: string } || {}),
-    };
+    const headers: { [key: string]: string } = {};
+
+    if (!(options.body instanceof FormData)) {
+      headers['Content-Type'] = 'application/json';
+    }
 
     if (this.token) {
       headers['Authorization'] = `Bearer ${this.token}`;
     }
 
+    console.log('Making API Request:', { url, options, headers });
+
     try {
       const response = await fetch(url, {
         ...options,
-        headers,
+        headers: {
+          ...headers,
+          ...(options.headers as any),
+        },
       });
+      console.log('API Request:', response);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -87,48 +94,36 @@ class ApiService {
     });
   }
 
-  async addItemByBarcode(mealType: MealType, barcode: string, quantity: number = 1): Promise<AddItemResponse> {
-    return this.makeRequest<AddItemResponse>(`/meals/${mealType}/add-item-by-barcode`, {
+  async getFoodByBarcode(barcode: string): Promise<Food> {
+    return this.makeRequest<Food>(`/foods/barcode/${barcode}`);
+  }
+
+  async addItemByBarcode(mealId: string, barcode: string, quantity: number = 1): Promise<AddItemResponse> {
+    return this.makeRequest<AddItemResponse>(`/meals/${mealId}/add-item-by-barcode`, {
       method: 'POST',
       body: JSON.stringify({ barcode, quantity }),
     });
   }
 
-  async addItemByImage(mealType: MealType, imageUri: string): Promise<AddItemResponse> {
+  async AnalyseItemByImage(imageUri: string, context: string = 'Lunch plate'): Promise<AnalyseMealResponse> {
     const formData = new FormData();
     
-    // Handle image upload for different platforms
     if (Platform.OS === 'web') {
-      // For web, convert to blob
       const response = await fetch(imageUri);
       const blob = await response.blob();
-      formData.append('image', blob, 'meal-image.jpg');
+      formData.append('file', blob, 'meal-image.jpg');
     } else {
-      // For mobile platforms
-      formData.append('image', {
+      formData.append('file', {
         uri: imageUri,
-        type: 'image/jpeg',
         name: 'meal-image.jpg',
+        type: 'image/jpeg',
       } as any);
     }
 
-    const headers: HeadersInit = {};
-    if (this.token) {
-      headers.Authorization = `Bearer ${this.token}`;
-    }
-
-    const response = await fetch(`${API_BASE_URL}/meals/${mealType}/add-item-by-image`, {
+    return this.makeRequest<AnalyseMealResponse>(`/ai-analysis/image`, {
       method: 'POST',
-      headers,
       body: formData,
     });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `HTTP ${response.status}`);
-    }
-
-    return await response.json();
   }
 
   async addItemByDescription(mealId: String, description: string): Promise<AddItemResponse> {

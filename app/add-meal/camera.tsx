@@ -6,9 +6,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, Camera, RotateCcw } from 'lucide-react-native';
 import { apiService } from '@/services/api';
 import { MealType } from '@/types/api';
+import * as FileSystem from 'expo-file-system';
 
 export default function CameraScreen() {
   const { type } = useLocalSearchParams<{ type: MealType }>();
+  const { mealId } = useLocalSearchParams<{ mealId: string }>();
   const [facing, setFacing] = useState<CameraType>('back');
   const [permission, requestPermission] = useCameraPermissions();
   const [loading, setLoading] = useState(false);
@@ -29,19 +31,20 @@ export default function CameraScreen() {
     try {
       const photo = await cameraRef.current.takePictureAsync({
         quality: 0.8,
-        base64: false,
+        base64: true,
       });
 
       if (photo?.uri) {
-        const result = await apiService.addItemByImage(type!, photo.uri);
+        const result = await apiService.AnalyseItemByImage(photo.uri);
         
-        if (result.success && result.items) {
+        if (result.foods) {
           router.push({
             pathname: '/add-meal/results',
             params: {
               type,
+              mealId: mealId,
               method: 'camera',
-              data: JSON.stringify(result.items),
+              data: JSON.stringify(result.foods),
             },
           });
         } else {
@@ -62,6 +65,7 @@ export default function CameraScreen() {
         }
       }
     } catch (error) {
+      console.error('Error taking picture:', error);
       Alert.alert('Camera Error', 'Failed to take picture. Please try again.');
       setLoading(false);
     }
@@ -144,26 +148,27 @@ export default function CameraScreen() {
       <View style={styles.cameraContainer}>
         <CameraView
           ref={cameraRef}
-          style={styles.camera}
+          style={StyleSheet.absoluteFill}
           facing={facing}
-        >
-          <View style={styles.overlay}>
-            <Text style={styles.instructionText}>
-              {loading ? 'Analyzing image...' : 'Position your meal in the center and tap the capture button'}
-            </Text>
-            
-            <View style={styles.captureContainer}>
-              <TouchableOpacity
-                style={[styles.captureButton, loading && styles.captureButtonDisabled]}
-                onPress={takePicture}
-                disabled={loading}
-              >
-                <View style={styles.captureButtonInner} />
-              </TouchableOpacity>
-            </View>
+        />
+        
+        <View style={styles.overlay}>
+          <Text style={styles.instructionText}>
+            {loading ? 'Analyzing image...' : 'Position your meal in the center and tap the capture button'}
+          </Text>
+          
+          <View style={styles.captureContainer}>
+            <TouchableOpacity
+              style={[styles.captureButton, loading && styles.captureButtonDisabled]}
+              onPress={takePicture}
+              disabled={loading}
+            >
+              <View style={styles.captureButtonInner} />
+            </TouchableOpacity>
           </View>
-        </CameraView>
+        </View>
       </View>
+
     </View>
   );
 }
@@ -210,7 +215,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   overlay: {
-    flex: 1,
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: 'transparent',
     flexDirection: 'column',
     justifyContent: 'space-between',

@@ -13,6 +13,7 @@ export default function HistoryScreen() {
   const loadMealHistory = async () => {
     try {
       const history = await apiService.getMealHistory();
+      console.log('Meal history loaded:', history);
       setMeals(history);
     } catch (error) {
       console.error('Failed to load meal history:', error);
@@ -28,8 +29,31 @@ export default function HistoryScreen() {
   };
 
   useEffect(() => {
+    setLoading(true);
     loadMealHistory();
+    setLoading(false);
   }, []);
+
+  const getMacros = (meal: Meal) => {
+    let protein = 0;
+    let carbs = 0;
+    let fat = 0;
+
+    meal.items.forEach(item => {
+      const { food, quantity } = item;
+      const ratio = quantity / (food.servingSize ?? 1);
+
+      protein += (food.protein ?? 0) * ratio;
+      carbs += (food.carbs ?? 0) * ratio;
+      fat += (food.fat ?? 0) * ratio;
+    });
+
+    return {
+      protein: protein.toFixed(0),
+      carbs: carbs.toFixed(0),
+      fat: fat.toFixed(0),
+    };
+  };
 
   const groupMealsByDate = () => {
     const grouped: { [key: string]: Meal[] } = {};
@@ -67,7 +91,14 @@ export default function HistoryScreen() {
   };
 
   const getTotalCaloriesForDate = (mealsForDate: Meal[]) => {
-    return mealsForDate.reduce((total, meal) => total + meal.totalCalories, 0);
+    return mealsForDate.reduce((total, meal) => {
+      const mealCalories = meal.items.reduce((mealTotal, item) => {
+        const calories = item.food?.calories ?? 0;
+        const servingSize = item.food?.servingSize ?? 1;
+        return mealTotal + calories * (item.quantity / servingSize);
+      }, 0);
+      return total + mealCalories;
+    }, 0).toFixed(0);
   };
 
   const getMealTypeColor = (type: string) => {
@@ -81,6 +112,8 @@ export default function HistoryScreen() {
   };
 
   const groupedMeals = groupMealsByDate();
+
+  console.log('Grouped meals:', groupedMeals);
 
   return (
     <View style={styles.container}>
@@ -110,7 +143,7 @@ export default function HistoryScreen() {
               <View style={styles.dateHeader}>
                 <Text style={styles.dateTitle}>{formatDate(date)}</Text>
                 <Text style={styles.dateSummary}>
-                  {getTotalCaloriesForDate(mealsForDate)} calories • {mealsForDate.length} meals
+                  {getTotalCaloriesForDate(mealsForDate)} Kcal • {mealsForDate.length} meals
                 </Text>
               </View>
 
@@ -133,25 +166,30 @@ export default function HistoryScreen() {
                     </View>
                     
                     <View style={styles.mealStats}>
-                      <Text style={styles.caloriesText}>{meal.totalCalories} cal</Text>
+                      <Text style={styles.caloriesText}>{meal.totalCalories} Kcal</Text>
                       <ChevronRight size={16} color="#9CA3AF" />
                     </View>
                   </View>
 
-                  <View style={styles.macroInfo}>
-                    <View style={styles.macroItem}>
-                      <Text style={styles.macroValue}>{meal.totalProtein}g</Text>
-                      <Text style={styles.macroLabel}>Protein</Text>
-                    </View>
-                    <View style={styles.macroItem}>
-                      <Text style={styles.macroValue}>{meal.totalCarbs}g</Text>
-                      <Text style={styles.macroLabel}>Carbs</Text>
-                    </View>
-                    <View style={styles.macroItem}>
-                      <Text style={styles.macroValue}>{meal.totalFat}g</Text>
-                      <Text style={styles.macroLabel}>Fat</Text>
-                    </View>
-                  </View>
+                  {(() => {
+                    const macros = getMacros(meal);
+                    return (
+                      <View style={styles.macroInfo}>
+                        <View style={styles.macroItem}>
+                          <Text style={styles.macroValue}>{macros.protein}g</Text>
+                          <Text style={styles.macroLabel}>Protein</Text>
+                        </View>
+                        <View style={styles.macroItem}>
+                          <Text style={styles.macroValue}>{macros.carbs}g</Text>
+                          <Text style={styles.macroLabel}>Carbs</Text>
+                        </View>
+                        <View style={styles.macroItem}>
+                          <Text style={styles.macroValue}>{macros.fat}g</Text>
+                          <Text style={styles.macroLabel}>Fat</Text>
+                        </View>
+                      </View>
+                    );
+                  })()}
                 </TouchableOpacity>
               ))}
             </View>

@@ -51,7 +51,7 @@ export type MealItem = {
   unit: string;
   createdAt: string;
   updatedAt: string;
-  food: Food; // nested food object here
+  food: Food;
 };
 
 export type Meal = {

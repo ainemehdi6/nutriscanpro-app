@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, TextInput } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, Check, Edit3, Trash2 } from 'lucide-react-native';
@@ -23,6 +23,7 @@ export default function ResultsScreen() {
     if (data) {
       try {
         const parsedItems = JSON.parse(data);
+        console.log('Parsed mealItems:', parsedItems);
         setMealItems(parsedItems);
       } catch (error) {
         console.error('Failed to parse mealItems data:', error);
@@ -47,32 +48,17 @@ export default function ResultsScreen() {
     }
     setLoading(false);
 
+    Alert.alert(
+      'Meal Added!',
+      `Successfully added ${mealItems.length} item(s) to your ${type}.`
+    );
+
     router.push({
           pathname: '/(tabs)',
           params: {
             selectedDate: selectedDate,
           },
     });
-    /*
-    Alert.alert(
-      'Meal Added!',
-      `Successfully added ${mealItems.length} item(s) to your ${type}.`,
-      [
-        {
-          text: 'OK',
-          onPress: () => {
-          router.push({
-            pathname: '/(tabs)',
-            params: {
-              refresh: 'true',
-              selectedDate: selectedDate,
-            },
-          });
-        },
-        },
-      ]
-    );
-    */
   };
 
   const handleRemoveItem = (index: number) => {
@@ -179,9 +165,20 @@ export default function ResultsScreen() {
                 </TouchableOpacity>
               </View>
               
-              <Text style={styles.itemQuantity}>
-                {item.quantity} {item.servingUnit}
-              </Text>
+              <View style={styles.quantityInputContainer}>
+                <TextInput
+                  style={styles.quantityInput}
+                  keyboardType="numeric"
+                  value={String(item.quantity)}
+                  onChangeText={(text) => {
+                    const newItems = [...mealItems];
+                    const newQuantity = parseFloat(text.replace(',', '.')) || 0;
+                    newItems[index].quantity = newQuantity;
+                    setMealItems(newItems);
+                  }}
+                />
+                <Text style={styles.unitLabel}>{item.servingUnit}</Text>
+              </View>
               
               <View style={styles.itemNutrition}>
                 <View style={styles.nutritionItem}>
@@ -387,5 +384,27 @@ const styles = StyleSheet.create({
   },
   confirmButton: {
     marginBottom: 12,
+  },
+  quantityInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+    marginBottom: 8,
+  },
+  quantityInput: {
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    minWidth: 60,
+    marginRight: 6,
+    fontSize: 14,
+    color: '#111827',
+    backgroundColor: '#F9FAFB',
+  },
+  unitLabel: {
+    fontSize: 14,
+    color: '#6B7280',
   },
 });
