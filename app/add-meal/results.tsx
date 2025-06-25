@@ -83,13 +83,34 @@ export default function ResultsScreen() {
     }
   };
 
+  const getMacros = (food: Food) => {
+    let protein = 0;
+    let carbs = 0;
+    let fat = 0;
+    let calories = 0;
+
+    const ratio = (food.quantity ?? 1) / (food.servingSize ?? 1);
+    console.log('Calculating macros for food:', food.name, 'with ratio:', ratio);
+    protein = (food.protein ?? 0) * ratio;
+    carbs = (food.carbs ?? 0) * ratio;
+    fat = (food.fat ?? 0) * ratio;
+    calories = (food.calories ?? 0) * ratio;
+    console.log('Calculated macros:', { protein, carbs, fat, calories });
+    return {
+      protein: protein.toFixed(0),
+      carbs: carbs.toFixed(0),
+      fat: fat.toFixed(0),
+      calories: calories.toFixed(0),
+    };
+  }
+
   const getTotalNutrition = () => {
     return mealItems.reduce(
       (total, item) => ({
-        calories: total.calories + (item.calories ?? 0),
-        protein: total.protein + (item.protein ?? 0),
-        carbs: total.carbs + (item.carbs ?? 0),
-        fat: total.fat + (item.fat ?? 0),
+        calories: (total.calories + (item.calories ?? 0)) * ((item.quantity ?? 1) / (item.servingSize ?? 1)),
+        protein: total.protein + (item.protein ?? 0) * ((item.quantity ?? 1) / (item.servingSize ?? 1)),
+        carbs: total.carbs + (item.carbs ?? 0) * ((item.quantity ?? 1) / (item.servingSize ?? 1)),
+        fat: total.fat + (item.fat ?? 0) * ((item.quantity ?? 1) / (item.servingSize ?? 1)),
       }),
       { calories: 0, protein: 0, carbs: 0, fat: 0 }
     );
@@ -129,21 +150,21 @@ export default function ResultsScreen() {
           
           <View style={styles.nutritionSummary}>
             <View style={styles.caloriesTotal}>
-              <Text style={styles.caloriesTotalValue}>{totals.calories}</Text>
+              <Text style={styles.caloriesTotalValue}>{totals.calories.toFixed(0)}</Text>
               <Text style={styles.caloriesTotalLabel}>Total Calories</Text>
             </View>
-            
+              
             <View style={styles.macroSummary}>
               <View style={styles.macroItem}>
-                <Text style={styles.macroValue}>{totals.protein}g</Text>
+                <Text style={styles.macroValue}>{totals.protein.toFixed(0)}g</Text>
                 <Text style={styles.macroLabel}>Protein</Text>
               </View>
               <View style={styles.macroItem}>
-                <Text style={styles.macroValue}>{totals.carbs}g</Text>
+                <Text style={styles.macroValue}>{totals.carbs.toFixed(0)}g</Text>
                 <Text style={styles.macroLabel}>Carbs</Text>
               </View>
               <View style={styles.macroItem}>
-                <Text style={styles.macroValue}>{totals.fat}g</Text>
+                <Text style={styles.macroValue}>{totals.fat.toFixed(0)}g</Text>
                 <Text style={styles.macroLabel}>Fat</Text>
               </View>
             </View>
@@ -182,19 +203,19 @@ export default function ResultsScreen() {
               
               <View style={styles.itemNutrition}>
                 <View style={styles.nutritionItem}>
-                  <Text style={styles.nutritionValue}>{item.calories}</Text>
+                  <Text style={styles.nutritionValue}>{getMacros(item).calories}Kcal</Text>
                   <Text style={styles.nutritionLabel}>cal</Text>
                 </View>
                 <View style={styles.nutritionItem}>
-                  <Text style={styles.nutritionValue}>{item.protein}g</Text>
+                  <Text style={styles.nutritionValue}>{getMacros(item).protein}g</Text>
                   <Text style={styles.nutritionLabel}>protein</Text>
                 </View>
                 <View style={styles.nutritionItem}>
-                  <Text style={styles.nutritionValue}>{item.carbs}g</Text>
+                  <Text style={styles.nutritionValue}>{getMacros(item).carbs}g</Text>
                   <Text style={styles.nutritionLabel}>carbs</Text>
                 </View>
                 <View style={styles.nutritionItem}>
-                  <Text style={styles.nutritionValue}>{item.fat}g</Text>
+                  <Text style={styles.nutritionValue}>{getMacros(item).fat}g</Text>
                   <Text style={styles.nutritionLabel}>fat</Text>
                 </View>
               </View>
