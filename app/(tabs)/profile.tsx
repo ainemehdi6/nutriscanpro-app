@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { use, useState } from 'react';
 import { Modal, TextInput, Keyboard } from 'react-native';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { router } from 'expo-router';
@@ -110,18 +110,18 @@ export default function ProfileScreen() {
         carbs,
         fat: fats,
       });
-      if (goals && user?.goals) {
-        user.goals[user.goals.length - 1] = goals;
-      }
+
+      user?.goals?.push(goals);
+      
       Alert.alert('Success', 'Goals updated successfully!');
       setGoalModalVisible(false);
-      } catch (error) {
-        console.error('Failed to load meals:', error);
-        Alert.alert('Error', "Failed to load meals for selected date");
-      } finally {
-        setLoading(false);
-      }
-    };
+    } catch (error) {
+      console.error('Failed to load meals:', error);
+      Alert.alert('Error', "Failed to load meals for selected date");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const GoalButton = ({ label, calorieMultiplier, baseCalories, onPress }: GoalButtonProps) => {
     const calories = Math.round(baseCalories * calorieMultiplier);
