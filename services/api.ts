@@ -1,7 +1,8 @@
-import { Platform } from 'react-native';
+import { Platform, Alert } from 'react-native';
 import { User, AuthResponse, Meal, AddItemRequest, AddItemResponse, MealType, AnalyseMealResponse, Food, Goals } from '@/types/api';
+import { router } from 'expo-router';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://nutriscanpro-api.onrender.com/api';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
 class ApiService {
   private token: string | null = null;
@@ -38,6 +39,15 @@ class ApiService {
           ...(options.headers as any),
         },
       });
+
+      if (response.status === 401) {
+        this.clearToken();
+        Alert.alert('Session Expired', 'Please log in again.');
+        router.push({
+          pathname: '/auth/login',
+        });
+        throw new Error('Session Expired. Please log in again.');
+      }
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
