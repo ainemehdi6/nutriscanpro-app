@@ -10,7 +10,6 @@ class AuthService {
   private currentUser: User | null = null;
   private listeners: ((user: User | null) => void)[] = [];
 
-  // Token management
   async getToken(): Promise<string | null> {
     if (Platform.OS === 'web') {
       return localStorage.getItem(TOKEN_KEY);
@@ -36,7 +35,6 @@ class AuthService {
     apiService.clearToken();
   }
 
-  // User management
   async getStoredUser(): Promise<User | null> {
     try {
       const userData = Platform.OS === 'web' 
@@ -74,7 +72,6 @@ class AuthService {
     this.notifyListeners(null);
   }
 
-  // Authentication methods
   async login(email: string, password: string): Promise<void> {
     const response = await apiService.login(email, password);
     await this.setToken(response.access_token);
@@ -102,7 +99,6 @@ class AuthService {
         await this.setUser(user);
         return user;
       } catch (error) {
-        // Token might be expired, clear it
         await this.logout();
         return null;
       }
@@ -118,7 +114,6 @@ class AuthService {
     return this.currentUser !== null;
   }
 
-  // Listener management for state updates
   addListener(callback: (user: User | null) => void): () => void {
     this.listeners.push(callback);
     return () => {

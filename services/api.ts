@@ -61,7 +61,6 @@ class ApiService {
     }
   }
 
-  // Authentication
   async login(email: string, password: string): Promise<AuthResponse> {
     return this.makeRequest<AuthResponse>('/auth/login', {
       method: 'POST',
@@ -80,7 +79,6 @@ class ApiService {
     return this.makeRequest<User>('/auth/profile');
   }
 
-  // Meals
   async getTodayMeals(): Promise<Meal[]> {
     const today = new Date().toISOString().split('T')[0];
     return this.makeRequest<Meal[]>(`/meals/date?date=${today}`);
@@ -154,7 +152,6 @@ class ApiService {
     });
   }
   
-  // User Profile
   async updateProfile(updates: Partial<User>): Promise<User> {
     return this.makeRequest<User>('/user/profile', {
       method: 'PUT',

@@ -7,7 +7,6 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Initialize auth state
     const initializeAuth = async () => {
       try {
         const currentUser = await authService.initialize();
@@ -21,7 +20,6 @@ export function useAuth() {
 
     initializeAuth();
 
-    // Listen for auth state changes
     const unsubscribe = authService.addListener(setUser);
     return unsubscribe;
   }, []);

@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
     borderRadius: 12,
     padding: 12,
-    width: '45%', // Two cards per row (responsive)
+    width: '45%',
     minWidth: 150,
     marginBottom: 8,
   },
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
     borderRadius: 12,
     padding: 12,
-    width: '30%', // Two cards per row (responsive)
+    width: '30%',
     minWidth: 100,
     marginBottom: 8,
   },
