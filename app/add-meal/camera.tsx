@@ -6,7 +6,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, Camera, RotateCcw } from 'lucide-react-native';
 import { apiService } from '@/services/api';
 import { MealType } from '@/types/api';
-import * as FileSystem from 'expo-file-system';
 
 export default function CameraScreen() {
   const { type } = useLocalSearchParams<{ type: MealType }>();
@@ -48,6 +47,7 @@ export default function CameraScreen() {
             },
           });
         } else {
+          console.log('Analysis failed:', result.message);
           Alert.alert(
             'Analysis Failed',
             'Could not analyze the image. Please try again or use a different method.',
@@ -65,35 +65,13 @@ export default function CameraScreen() {
         }
       }
     } catch (error) {
+      console.log('Error taking picture:', error);
       console.error('Error taking picture:', error);
       Alert.alert('Camera Error', 'Failed to take picture. Please try again.');
       setLoading(false);
     }
   };
 
-  if (Platform.OS === 'web') {
-    return (
-      <View style={styles.container}>
-        <LinearGradient
-          colors={['#22C55E', '#16A34A']}
-          style={styles.header}
-        >
-          <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
-            <ArrowLeft size={24} color="white" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Camera</Text>
-        </LinearGradient>
-        
-        <View style={styles.webNotSupported}>
-          <Camera size={64} color="#9CA3AF" />
-          <Text style={styles.webTitle}>Camera Not Available</Text>
-          <Text style={styles.webText}>
-            Camera is not available on web. Please use the mobile app or try the barcode scanner or text description methods.
-          </Text>
-        </View>
-      </View>
-    );
-  }
 
   if (!permission) {
     return (

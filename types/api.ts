@@ -85,6 +85,12 @@ export interface AddItemResponse {
   };
 }
 
+export interface DeleteItemResponse {
+  success: boolean;
+  deletedItems?: MealItem[];
+  message?: string;
+}
+
 export interface AnalyseMealResponse {
   success: boolean;
   foods?: Food[];

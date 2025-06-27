@@ -1,5 +1,5 @@
 import { Platform, Alert } from 'react-native';
-import { User, AuthResponse, Meal, AddItemRequest, AddItemResponse, MealType, AnalyseMealResponse, Food, Goals } from '@/types/api';
+import { User, AuthResponse, Meal, AddItemResponse, MealType, AnalyseMealResponse, Food, Goals, DeleteItemResponse } from '@/types/api';
 import { router } from 'expo-router';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
@@ -138,6 +138,12 @@ class ApiService {
     });
   }
 
+  async deleteFoodFromMeal(mealId: String, foodId: string): Promise<DeleteItemResponse> {
+    return this.makeRequest<DeleteItemResponse>(`/meals/${mealId}/delete-food/${foodId}`, {
+      method: 'DELETE',
+    });
+  }
+
   async analyseMealDescription(description: string): Promise<AnalyseMealResponse> {
     return this.makeRequest<AddItemResponse>(`/ai-analysis/text`, {
       method: 'POST',
@@ -152,9 +158,9 @@ class ApiService {
     });
   }
   
-  async updateProfile(updates: Partial<User>): Promise<User> {
-    return this.makeRequest<User>('/user/profile', {
-      method: 'PUT',
+  async updateProfile(userId: string, updates: Partial<User>): Promise<User> {
+    return this.makeRequest<User>(`/users/${userId}`, {
+      method: 'PATCH',
       body: JSON.stringify(updates),
     });
   }

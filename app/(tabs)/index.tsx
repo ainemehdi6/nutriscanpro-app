@@ -6,6 +6,7 @@ import { Plus, Sunrise, Sun, Sunset, Coffee } from 'lucide-react-native';
 import { useAuth } from '@/hooks/useAuth';
 import { apiService } from '@/services/api';
 import { Meal, MealType } from '@/types/api';
+import { Trash2 } from 'lucide-react-native';
 
 const MEAL_TYPES = [
   { type: 'BREAKFAST', label: 'Breakfast', icon: Sunrise, color: '#F59E0B' },
@@ -26,6 +27,7 @@ export default function HomeScreen() {
     const mealsByDate = await apiService.getMealsByDate(date);
     if (!mealsByDate || mealsByDate.length === 0) {
       setMeals([]);
+      return;
     }
 
     const mealsWithCalories = Object.values(mealsByDate).map(meal => ({
@@ -62,6 +64,37 @@ export default function HomeScreen() {
     setRefreshing(true);
     await loadMealsByDate(selectedDate);
     setRefreshing(false);
+  };
+
+
+  const handleRemoveItem = (foodId: string, name: string, type: string, mealId: string) => {
+    Alert.alert(
+            'Delete Meal',
+            `Are you sure you want to delete ` + name + ` from your ` + type + ` ?`,
+            [
+              { text: 'Cancel', style: 'cancel' },
+              {
+                text: 'Delete',
+                style: 'destructive',
+                onPress: async () => {
+                  try {
+                    const deleteMealItem =  await apiService.deleteFoodFromMeal(mealId, foodId);
+                    setMeals(prevMeals => prevMeals.filter(m => m.id !== foodId));
+                    if (deleteMealItem.success) {
+                      Alert.alert('Success', 'Food item deleted successfully.');
+                      await loadMealsByDate(selectedDate);
+                    }
+                    else {
+                      Alert.alert('Error', deleteMealItem.message || 'Failed to delete food item.');
+                    }
+                  } catch (error) {
+                    console.error('Failed to delete food:', error);
+                    Alert.alert('Error', 'Failed to delete food. Please try again.');
+                  }
+                },
+              },
+            ],
+          );
   };
 
   const getTotal = (key: 'carbs' | 'protein' | 'fat'): number => {
@@ -189,7 +222,15 @@ export default function HomeScreen() {
                 <View style={styles.mealItems}>
                   {meal.items.map((item, index) => (
                     <View key={index} style={styles.foodItem}>
-                      <Text style={styles.foodName}>{item.quantity}{item.unit} of {item.food?.name}</Text>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Text style={styles.foodName}>
+                          {item.quantity}{item.unit} of {item.food?.name}
+                        </Text>
+                        <TouchableOpacity onPress={() => handleRemoveItem(item.foodId, item.food?.name, meal.type, meal.id)}>
+                          <Trash2 size={15} color="red" />
+                        </TouchableOpacity>
+                      </View>
+
                       <Text style={styles.foodCalories}>
                         {item.food?.calories && item.food?.servingSize 
                           ? `${((item.quantity * item.food.calories) / item.food.servingSize).toFixed(0)} Kcal | ` 

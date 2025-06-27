@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Calendar, ChevronRight } from 'lucide-react-native';
 import { apiService } from '@/services/api';
 import { Meal } from '@/types/api';
+import { ActivityIndicator } from 'react-native';
 
 export default function HistoryScreen() {
   const [meals, setMeals] = useState<Meal[]>([]);
@@ -28,9 +29,7 @@ export default function HistoryScreen() {
   };
 
   useEffect(() => {
-    setLoading(true);
-    loadMealHistory();
-    setLoading(false);
+      loadMealHistory();
   }, []);
 
   const getMacros = (meal: Meal) => {
@@ -127,56 +126,60 @@ export default function HistoryScreen() {
         </View>
       </LinearGradient>
 
-      <ScrollView 
-        style={styles.content}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-      >
-        {groupedMeals.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Calendar size={48} color="#9CA3AF" />
-            <Text style={styles.emptyTitle}>No Meal History</Text>
-            <Text style={styles.emptyText}>Start tracking your meals to see your history here</Text>
-          </View>
-        ) : (
-          groupedMeals.map(([date, mealsForDate]) => (
-            <View key={date} style={styles.dateSection}>
-              <View style={styles.dateHeader}>
-                <Text style={styles.dateTitle}>{formatDate(date)}</Text>
-                <Text style={styles.dateSummary}>
-                  {getTotalCaloriesForDate(mealsForDate)} Kcal • {mealsForDate.length} meals
-                </Text>
-              </View>
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#2563EB" />
+        </View>
+      ) : (
+        <ScrollView 
+          style={styles.content}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        >
+          {groupedMeals.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Calendar size={48} color="#9CA3AF" />
+              <Text style={styles.emptyTitle}>No Meal History</Text>
+              <Text style={styles.emptyText}>Start tracking your meals to see your history here</Text>
+            </View>
+          ) : (
+            groupedMeals.map(([date, mealsForDate]) => (
+              <View key={date} style={styles.dateSection}>
+                <View style={styles.dateHeader}>
+                  <Text style={styles.dateTitle}>{formatDate(date)}</Text>
+                  <Text style={styles.dateSummary}>
+                    {getTotalCaloriesForDate(mealsForDate)} Kcal • {mealsForDate.length} meals
+                  </Text>
+                </View>
 
-              {mealsForDate.map((meal) => (
-                <TouchableOpacity key={meal.id} style={styles.mealCard}>
-                  <View style={styles.mealHeader}>
-                    <View style={styles.mealInfo}>
-                      <View style={[
-                        styles.mealTypeIndicator,
-                        { backgroundColor: getMealTypeColor(meal.type) }
-                      ]} />
-                      <View>
-                        <Text style={styles.mealType}>
-                          {meal.type.charAt(0).toUpperCase() + meal.type.slice(1)}
-                        </Text>
-                        <Text style={styles.mealItemCount}>
-                          {meal.items.length} items
-                        </Text>
-                      </View>
-                    </View>               
-                    {(() => {
-                      const macros = getMacros(meal);
-                      return (
+                {mealsForDate.map((meal) => {
+                  const macros = getMacros(meal);
+
+                  return (
+                    <TouchableOpacity key={meal.id} style={styles.mealCard}>
+                      <View style={styles.mealHeader}>
+                        <View style={styles.mealInfo}>
+                          <View
+                            style={[
+                              styles.mealTypeIndicator,
+                              { backgroundColor: getMealTypeColor(meal.type) },
+                            ]}
+                          />
+                          <View>
+                            <Text style={styles.mealType}>
+                              {meal.type.charAt(0).toUpperCase() + meal.type.slice(1)}
+                            </Text>
+                            <Text style={styles.mealItemCount}>
+                              {meal.items.length} items
+                            </Text>
+                          </View>
+                        </View>
+
                         <View style={styles.mealStats}>
                           <Text style={styles.caloriesText}>{macros.calories} Kcal</Text>
                           <ChevronRight size={16} color="#9CA3AF" />
                         </View>
-                      );
-                    })()}
-                  </View>
-                  {(() => {
-                    const macros = getMacros(meal);
-                    return (
+                      </View>
+
                       <View style={styles.macroInfo}>
                         <View style={styles.macroItem}>
                           <Text style={styles.macroValue}>{macros.protein}g</Text>
@@ -191,19 +194,25 @@ export default function HistoryScreen() {
                           <Text style={styles.macroLabel}>Fat</Text>
                         </View>
                       </View>
-                    );
-                  })()}
-                </TouchableOpacity>
-              ))}
-            </View>
-          ))
-        )}
-      </ScrollView>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            ))
+          )}
+        </ScrollView>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+  },
   container: {
     flex: 1,
     backgroundColor: '#F8FAFC',

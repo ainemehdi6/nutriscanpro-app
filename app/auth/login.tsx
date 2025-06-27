@@ -42,7 +42,7 @@ export default function LoginScreen() {
       await login(email.trim(), password);
       router.replace('/(tabs)');
     } catch (error) {
-      Alert.alert('Login Failed', error instanceof Error ? error.message : 'Please try again');
+      Alert.alert('Login Failed. Please try again');
     } finally {
       setLoading(false);
     }

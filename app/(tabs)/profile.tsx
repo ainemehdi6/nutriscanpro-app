@@ -1,4 +1,4 @@
-import { use, useState } from 'react';
+import { useState } from 'react';
 import { Modal, TextInput, Keyboard } from 'react-native';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { router } from 'expo-router';
@@ -12,13 +12,15 @@ export default function ProfileScreen() {
   const { user, logout } = useAuth();
   const [loading, setLoading] = useState(false);
   const [goalModalVisible, setGoalModalVisible] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editName, setEditName] = useState(user?.name ?? '');
+  const [editEmail, setEditEmail] = useState(user?.email ?? '');
   const [weight, setWeight] = useState('');
   const [height, setHeight] = useState('');
   const [age, setAge] = useState('');
   const [gender, setGender] = useState('');
   const [calculatedCalories, setCalculatedCalories] = useState<number | null>(null);
   const [macros, setMacros] = useState({ protein: 0, carbs: 0, fats: 0 });
-
 
   const handleLogout = async () => {
     Alert.alert(
@@ -45,9 +47,27 @@ export default function ProfileScreen() {
     );
   };
 
-  const handleEditProfile = () => {
-    // TODO: Implement edit profile screen
-    Alert.alert('Coming Soon', 'Profile editing will be available soon!');
+  const handleEditProfile = async () => {
+    if (!editName.trim() || !editEmail.trim()) {
+      Alert.alert('Error', 'Name and email cannot be empty');
+      return;
+    }
+    if (!user?.id) {
+      Alert.alert('Error', 'User ID is missing');
+      return;
+    }
+    try {
+      await apiService.updateProfile(user.id, {name: editName, email: editEmail });
+      Alert.alert('Success', 'User info updated successfully. Please log in again.');
+      setEditModalVisible(false);
+      await logout();
+      router.replace('/auth/login');
+    } catch (error) {
+      console.error('Profile update failed:', error);
+      Alert.alert('Error', 'Failed to update profile');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const calculateCalories = () => {
@@ -162,10 +182,12 @@ export default function ProfileScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Profile Information</Text>
           
-          <TouchableOpacity style={styles.settingItem} onPress={handleEditProfile}>
-            <View style={styles.settingIcon}>
-              <Edit3 size={18} color="#8B5CF6" />
-            </View>
+          <TouchableOpacity style={styles.settingItem} onPress={() => {
+            setEditName(user?.name ?? '');
+            setEditEmail(user?.email ?? '');
+            setEditModalVisible(true);
+          }}>
+            <View style={styles.settingIcon}><Edit3 size={18} color="#8B5CF6" /></View>
             <View style={styles.settingContent}>
               <Text style={styles.settingTitle}>Edit Profile</Text>
               <Text style={styles.settingSubtitle}>Update your personal information</Text>
@@ -368,6 +390,28 @@ export default function ProfileScreen() {
           </View>
         </View>
       </Modal>
+
+      <Modal visible={editModalVisible} transparent animationType="slide" onRequestClose={() => setEditModalVisible(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Edit Profile</Text>
+            <TextInput
+              placeholder="Name" value={editName} onChangeText={setEditName}
+              style={styles.inputStyle}
+            />
+            <TextInput
+              placeholder="Email" value={editEmail} onChangeText={setEditEmail}
+              keyboardType="email-address" autoCapitalize="none"
+              style={styles.inputStyle}
+            />
+            <View style={styles.modalButtons}>
+              <Button title="Cancel" variant="outline" style={styles.modalButton} onPress={() => setEditModalVisible(false)} />
+              <Button title={loading ? 'Saving...' : 'Save'} style={styles.modalButton} onPress={handleEditProfile} disabled={loading} />
+            </View>
+          </View>
+        </View>
+      </Modal>
+
     </View>
   );
 }
@@ -504,4 +548,30 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginTop: 8,
   }, 
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  modalContent: {
+    width: '90%',
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 16
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 12
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 12
+  },
+  modalButton: {
+    flex: 1,
+    marginHorizontal: 4
+  }
 });
