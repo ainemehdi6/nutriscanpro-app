@@ -2,46 +2,48 @@ import { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, RefreshControl } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Plus, Sunrise, Sun, Sunset, Coffee } from 'lucide-react-native';
+import { Plus, Sunrise, Sun, Sunset, Coffee, Trash2 } from 'lucide-react-native';
 import { useAuth } from '@/hooks/useAuth';
+import { useI18n } from '@/hooks/useI18n';
 import { apiService } from '@/services/api';
 import { Meal, MealType } from '@/types/api';
-import { Trash2 } from 'lucide-react-native';
+import { TranslationKeys } from '@/types/i18n';
 
 const MEAL_TYPES = [
-  { type: 'BREAKFAST', label: 'Breakfast', icon: Sunrise, color: '#F59E0B' },
-  { type: 'LUNCH', label: 'Lunch', icon: Sun, color: '#EF4444' },
-  { type: 'DINNER', label: 'Dinner', icon: Sunset, color: '#8B5CF6' },
-  { type: 'SNACK', label: 'Snacks', icon: Coffee, color: '#06B6D4' },
+  { type: 'BREAKFAST', label: 'meals.breakfast', icon: Sunrise, color: '#F59E0B' },
+  { type: 'LUNCH', label: 'meals.lunch', icon: Sun, color: '#EF4444' },
+  { type: 'DINNER', label: 'meals.dinner', icon: Sunset, color: '#8B5CF6' },
+  { type: 'SNACK', label: 'meals.snacks', icon: Coffee, color: '#06B6D4' },
 ] satisfies { type: MealType; label: string; icon: any; color: string }[];
 
 export default function HomeScreen() {
   const { user } = useAuth();
+  const { t } = useI18n();
   const [meals, setMeals] = useState<Meal[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
 
   const loadMealsByDate = async (date: Date) => {
-  try {
-    const mealsByDate = await apiService.getMealsByDate(date);
-    if (!mealsByDate || mealsByDate.length === 0) {
-      setMeals([]);
-      return;
-    }
+    try {
+      const mealsByDate = await apiService.getMealsByDate(date);
+      if (!mealsByDate || mealsByDate.length === 0) {
+        setMeals([]);
+        return;
+      }
 
-    const mealsWithCalories = Object.values(mealsByDate).map(meal => ({
-      ...meal,
-      totalCalories: Math.round(
-        meal.items.reduce((sum, item) => {
-          if (
-            item.food &&
-            typeof item.food.calories === 'number' &&
-            typeof item.food.servingSize === 'number' &&
-            typeof item.quantity === 'number'
-          ) {
-            return sum + (item.quantity * item.food.calories) / item.food.servingSize;
-          }
+      const mealsWithCalories = Object.values(mealsByDate).map(meal => ({
+        ...meal,
+        totalCalories: Math.round(
+          meal.items.reduce((sum, item) => {
+            if (
+              item.food &&
+              typeof item.food.calories === 'number' &&
+              typeof item.food.servingSize === 'number' &&
+              typeof item.quantity === 'number'
+            ) {
+              return sum + (item.quantity * item.food.calories) / item.food.servingSize;
+            }
             return sum;
           }, 0)
         ),
@@ -50,7 +52,7 @@ export default function HomeScreen() {
       setMeals(mealsWithCalories);
     } catch (error) {
       console.error('Failed to load meals:', error);
-      Alert.alert('Error', "Failed to load meals for selected date");
+      Alert.alert(t('common.error'), t('home.failed_load_meals'));
     } finally {
       setLoading(false);
     }
@@ -66,35 +68,36 @@ export default function HomeScreen() {
     setRefreshing(false);
   };
 
-
   const handleRemoveItem = (foodId: string, name: string, type: string, mealId: string) => {
     Alert.alert(
-            'Delete Meal',
-            `Are you sure you want to delete ` + name + ` from your ` + type + ` ?`,
-            [
-              { text: 'Cancel', style: 'cancel' },
-              {
-                text: 'Delete',
-                style: 'destructive',
-                onPress: async () => {
-                  try {
-                    const deleteMealItem =  await apiService.deleteFoodFromMeal(mealId, foodId);
-                    setMeals(prevMeals => prevMeals.filter(m => m.id !== foodId));
-                    if (deleteMealItem.success) {
-                      Alert.alert('Success', 'Food item deleted successfully.');
-                      await loadMealsByDate(selectedDate);
-                    }
-                    else {
-                      Alert.alert('Error', deleteMealItem.message || 'Failed to delete food item.');
-                    }
-                  } catch (error) {
-                    console.error('Failed to delete food:', error);
-                    Alert.alert('Error', 'Failed to delete food. Please try again.');
-                  }
-                },
-              },
-            ],
-          );
+      t('common.delete'),
+      t('home.delete_confirm', { name, type }),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('common.delete'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setLoading(true);
+              const deleteMealItem = await apiService.deleteFoodFromMeal(mealId, foodId);
+              setMeals(prevMeals => prevMeals.filter(m => m.id !== foodId));
+              if (deleteMealItem.success) {
+                Alert.alert(t('common.success'), t('home.delete_success'));
+                await loadMealsByDate(selectedDate);
+              } else {
+                Alert.alert(t('common.error'), deleteMealItem.message || t('home.delete_failed'));
+              }
+            } catch (error) {
+              console.error('Failed to delete food:', error);
+              Alert.alert(t('common.error'), t('home.delete_failed_retry'));
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ],
+    );
   };
 
   const getTotal = (key: 'carbs' | 'protein' | 'fat'): number => {
@@ -127,13 +130,24 @@ export default function HomeScreen() {
     return (quantity * food[key]) / food.servingSize;
   };
 
-  const formatDate = (date: Date) =>
-    date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-  });
+  const formatDate = (date: Date) => {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    if (date.toDateString() === today.toDateString()) {
+      return t('history.today');
+    } else if (date.toDateString() === yesterday.toDateString()) {
+      return t('history.yesterday');
+    } else {
+      return date.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+    }
+  };
 
   return (
     <ScrollView
@@ -142,56 +156,64 @@ export default function HomeScreen() {
     >
       <LinearGradient colors={['#22C55E', '#16A34A']} style={styles.header}>
         <View style={styles.headerContent}>
-          <Text style={styles.greeting}>Hello, {user?.name}!</Text>
+          <Text style={styles.greeting}>{t('home.hello', { name: user?.name ?? '' })}</Text>
           <Text style={styles.date}>{formatDate(selectedDate)}</Text>
           <View style={[styles.headerStats, { justifyContent: 'center' }]}>
             <View style={styles.caloriesCard}>
-              <Text style={styles.caloriesLabel}>Calories</Text>
+              <Text style={styles.caloriesLabel}>{t('profile.calories')}</Text>
               <Text style={styles.caloriesValue}>
                 {meals.reduce((t, m) => t + (m.totalCalories || 0), 0).toFixed(0)} Kcal
               </Text>
               {getGoalValue('calories') && (
-                <Text style={styles.caloriesGoal}>of {getGoalValue('calories')} Kcal</Text>
+                <Text style={styles.caloriesGoal}>
+                  {t('home.of_goal', { goal: getGoalValue('calories') ?? 0 })} Kcal
+                </Text>
               )}
             </View>
           </View>
           <View style={[styles.headerStats]}>
             <View style={styles.macrosCard}>
-              <Text style={styles.caloriesLabel}>Carbs</Text>
+              <Text style={styles.caloriesLabel}>{t('results.carbs')}</Text>
               <Text style={styles.caloriesValue}>{getTotal('carbs').toFixed(0)}g</Text>
               {getGoalValue('carbs') && (
-                <Text style={styles.caloriesGoal}>of {getGoalValue('carbs')}g</Text>
+                <Text style={styles.caloriesGoal}>
+                  {t('home.of_goal', { goal: getGoalValue('carbs') ?? 0 })}g
+                </Text>
               )}
             </View>
             <View style={styles.macrosCard}>
-              <Text style={styles.caloriesLabel}>Protein</Text>
+              <Text style={styles.caloriesLabel}>{t('results.protein')}</Text>
               <Text style={styles.caloriesValue}>{getTotal('protein').toFixed(0)}g</Text>
               {getGoalValue('protein') && (
-                <Text style={styles.caloriesGoal}>of {getGoalValue('protein')}g</Text>
+                <Text style={styles.caloriesGoal}>
+                  {t('home.of_goal', { goal: getGoalValue('protein') ?? 0 })}g
+                </Text>
               )}
             </View>
             <View style={styles.macrosCard}>
-              <Text style={styles.caloriesLabel}>Fats</Text>
+              <Text style={styles.caloriesLabel}>{t('results.fat')}</Text>
               <Text style={styles.caloriesValue}>{getTotal('fat').toFixed(0)}g</Text>
               {getGoalValue('fat') && (
-                <Text style={styles.caloriesGoal}>of {getGoalValue('fat')}g</Text>
+                <Text style={styles.caloriesGoal}>
+                  {t('home.of_goal', { goal: getGoalValue('fat') ?? 0 })}g
+                </Text>
               )}
             </View>
           </View>
         </View>
         <View style={styles.dateNavigation}>
-            <TouchableOpacity onPress={() => updateSelectedDate('prev')}>
-            <Text style={{ color: 'white', marginRight: 16 }}>{'<'} Prev</Text>
+          <TouchableOpacity onPress={() => updateSelectedDate('prev')}>
+            <Text style={{ color: 'white', marginRight: 16 }}>{'<'} {t('home.prev')}</Text>
           </TouchableOpacity>
           <Text style={styles.date}>{formatDate(selectedDate)}</Text>
-            <TouchableOpacity onPress={() => updateSelectedDate('next')}>
-            <Text style={{ color: 'white', marginLeft: 16 }}>Next {'>'}</Text>
+          <TouchableOpacity onPress={() => updateSelectedDate('next')}>
+            <Text style={{ color: 'white', marginLeft: 16 }}>{t('home.next')} {'>'}</Text>
           </TouchableOpacity>
         </View>
       </LinearGradient>
 
       <View style={styles.content}>
-        <Text style={styles.sectionTitle}>Today's Meals</Text>
+        <Text style={styles.sectionTitle}>{t('home.today_meals')}</Text>
 
         {MEAL_TYPES.map(({ type, label, icon: Icon, color }) => {
           const meal = meals.find((m) => m.type === type);
@@ -204,9 +226,15 @@ export default function HomeScreen() {
                     <Icon size={20} color={color} />
                   </View>
                   <View>
-                    <Text style={styles.mealTitle}>{label}</Text>
+                    <Text style={styles.mealTitle}>{t(label as keyof TranslationKeys)}</Text>
                     <Text style={styles.mealStats}>
-                      {meal ? `${meal.items.length} items • ${meal.totalCalories?.toFixed(0)}Kcal` : 'No items added'}
+                      {meal
+                        ? t('home.items_calories', {
+                          count: meal.items.length,
+                          calories: meal.totalCalories?.toFixed(0) ?? 0
+                        })
+                        : t('home.no_items_added')
+                      }
                     </Text>
                   </View>
                 </View>
@@ -224,25 +252,25 @@ export default function HomeScreen() {
                     <View key={index} style={styles.foodItem}>
                       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Text style={styles.foodName}>
-                          {item.quantity}{item.unit} of {item.food?.name}
+                          {item.quantity}{item.unit} {t('home.of')} {item.food?.name}
                         </Text>
-                        <TouchableOpacity onPress={() => handleRemoveItem(item.foodId, item.food?.name, meal.type, meal.id)}>
+                        <TouchableOpacity onPress={() => handleRemoveItem(item.foodId, item.food?.name, label, meal.id)}>
                           <Trash2 size={15} color="red" />
                         </TouchableOpacity>
                       </View>
 
                       <Text style={styles.foodCalories}>
-                        {item.food?.calories && item.food?.servingSize 
-                          ? `${((item.quantity * item.food.calories) / item.food.servingSize).toFixed(0)} Kcal | ` 
+                        {item.food?.calories && item.food?.servingSize
+                          ? `${((item.quantity * item.food.calories) / item.food.servingSize).toFixed(0)} Kcal | `
                           : ''}
                         {item.food?.carbs && item.food?.servingSize
-                          ? `${((item.quantity * item.food.carbs) / item.food.servingSize).toFixed(0)}g of Carbs | `
+                          ? `${((item.quantity * item.food.carbs) / item.food.servingSize).toFixed(0)}g ${t('home.of_carbs')} | `
                           : ''}
-                        {item.food?.protein && item.food?.servingSize 
-                          ? `${((item.quantity * item.food.protein) / item.food.servingSize).toFixed(0)}g of Protein | ` 
+                        {item.food?.protein && item.food?.servingSize
+                          ? `${((item.quantity * item.food.protein) / item.food.servingSize).toFixed(0)}g ${t('home.of_protein')} | `
                           : ''}
-                        {item.food?.fat && item.food?.servingSize 
-                          ? `${((item.quantity * item.food.fat) / item.food.servingSize).toFixed(0)}g of Fats` 
+                        {item.food?.fat && item.food?.servingSize
+                          ? `${((item.quantity * item.food.fat) / item.food.servingSize).toFixed(0)}g ${t('home.of_fats')}`
                           : ''}
                       </Text>
                     </View>
@@ -276,7 +304,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 12,
   },
-  dateNavigation:  {
+  dateNavigation: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',

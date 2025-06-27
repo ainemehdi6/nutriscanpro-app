@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollVi
 import { Link, router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/hooks/useAuth';
+import { useI18n } from '@/hooks/useI18n';
 import Button from '@/components/Button';
 import Input from '@/components/Input';
 import { UserPlus } from 'lucide-react-native';
@@ -21,6 +22,7 @@ export default function SignupScreen() {
   }>({});
 
   const { register } = useAuth();
+  const { t } = useI18n();
 
   const validateForm = () => {
     const newErrors: {
@@ -31,25 +33,25 @@ export default function SignupScreen() {
     } = {};
 
     if (!name.trim()) {
-      newErrors.name = 'Name is required';
+      newErrors.name = t('validation.name_required');
     }
 
     if (!email.trim()) {
-      newErrors.email = 'Email is required';
+      newErrors.email = t('validation.email_required');
     } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = 'Email is invalid';
+      newErrors.email = t('validation.email_invalid');
     }
 
     if (!password.trim()) {
-      newErrors.password = 'Password is required';
+      newErrors.password = t('validation.password_required');
     } else if (password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+      newErrors.password = t('validation.password_min_length');
     }
 
     if (!confirmPassword.trim()) {
-      newErrors.confirmPassword = 'Please confirm your password';
+      newErrors.confirmPassword = t('validation.confirm_password_required');
     } else if (password !== confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+      newErrors.confirmPassword = t('validation.passwords_not_match');
     }
 
     setErrors(newErrors);
@@ -64,7 +66,7 @@ export default function SignupScreen() {
       await register(email.trim(), password, name.trim());
       router.replace('/(tabs)');
     } catch (error) {
-      Alert.alert('Registration Failed', error instanceof Error ? error.message : 'Please try again');
+      Alert.alert(t('auth.registration_failed'), error instanceof Error ? error.message : t('auth.try_again'));
     } finally {
       setLoading(false);
     }
@@ -84,50 +86,50 @@ export default function SignupScreen() {
             <View style={styles.iconContainer}>
               <UserPlus size={32} color="#22C55E" />
             </View>
-            <Text style={styles.title}>Join NutriTracker</Text>
-            <Text style={styles.subtitle}>Create your account to start your nutrition journey</Text>
+            <Text style={styles.title}>{t('auth.join_app')}</Text>
+            <Text style={styles.subtitle}>{t('auth.create_account_subtitle')}</Text>
           </View>
 
           <View style={styles.form}>
             <Input
-              label="Full Name"
+              label={t('auth.full_name')}
               value={name}
               onChangeText={setName}
-              placeholder="Enter your full name"
+              placeholder={t('auth.full_name')}
               autoCapitalize="words"
               error={errors.name}
             />
 
             <Input
-              label="Email"
+              label={t('auth.email')}
               value={email}
               onChangeText={setEmail}
-              placeholder="Enter your email"
+              placeholder={t('auth.email')}
               keyboardType="email-address"
               autoCapitalize="none"
               error={errors.email}
             />
 
             <Input
-              label="Password"
+              label={t('auth.password')}
               value={password}
               onChangeText={setPassword}
-              placeholder="Create a password"
+              placeholder={t('auth.password')}
               secureTextEntry
               error={errors.password}
             />
 
             <Input
-              label="Confirm Password"
+              label={t('auth.confirm_password')}
               value={confirmPassword}
               onChangeText={setConfirmPassword}
-              placeholder="Confirm your password"
+              placeholder={t('auth.confirm_password')}
               secureTextEntry
               error={errors.confirmPassword}
             />
 
             <Button
-              title={loading ? 'Creating Account...' : 'Create Account'}
+              title={loading ? t('auth.creating_account') : t('auth.create_account')}
               onPress={handleSignup}
               disabled={loading}
               style={styles.signupButton}
@@ -135,9 +137,9 @@ export default function SignupScreen() {
 
             <View style={styles.linkContainer}>
               <Text style={styles.linkText}>
-                Already have an account?{' '}
+                {t('auth.have_account')}{' '}
                 <Link href="/auth/login" style={styles.link}>
-                  Sign in
+                  {t('auth.sign_in')}
                 </Link>
               </Text>
             </View>

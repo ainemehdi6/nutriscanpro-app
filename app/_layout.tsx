@@ -3,11 +3,16 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { useAuth } from '@/hooks/useAuth';
+import { i18nService } from '@/services/i18n';
 import LoadingScreen from '@/components/LoadingScreen';
 
 export default function RootLayout() {
   useFrameworkReady();
   const { loading } = useAuth();
+
+  useEffect(() => {
+    i18nService.initialize();
+  }, []);
 
   if (loading) {
     return <LoadingScreen />;

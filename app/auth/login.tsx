@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollVi
 import { Link, router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/hooks/useAuth';
+import { useI18n } from '@/hooks/useI18n';
 import Button from '@/components/Button';
 import Input from '@/components/Input';
 import { User } from 'lucide-react-native';
@@ -14,20 +15,21 @@ export default function LoginScreen() {
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
   const { login } = useAuth();
+  const { t } = useI18n();
 
   const validateForm = () => {
     const newErrors: { email?: string; password?: string } = {};
 
     if (!email.trim()) {
-      newErrors.email = 'Email is required';
+      newErrors.email = t('validation.email_required');
     } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = 'Email is invalid';
+      newErrors.email = t('validation.email_invalid');
     }
 
     if (!password.trim()) {
-      newErrors.password = 'Password is required';
+      newErrors.password = t('validation.password_required');
     } else if (password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+      newErrors.password = t('validation.password_min_length');
     }
 
     setErrors(newErrors);
@@ -42,7 +44,7 @@ export default function LoginScreen() {
       await login(email.trim(), password);
       router.replace('/(tabs)');
     } catch (error) {
-      Alert.alert('Login Failed. Please try again');
+      Alert.alert(t('auth.login_failed'), error instanceof Error ? error.message : t('auth.try_again'));
     } finally {
       setLoading(false);
     }
@@ -62,32 +64,32 @@ export default function LoginScreen() {
             <View style={styles.iconContainer}>
               <User size={32} color="#22C55E" />
             </View>
-            <Text style={styles.title}>Welcome Back</Text>
-            <Text style={styles.subtitle}>Sign in to continue tracking your nutrition</Text>
+            <Text style={styles.title}>{t('auth.welcome_back')}</Text>
+            <Text style={styles.subtitle}>{t('auth.sign_in_subtitle')}</Text>
           </View>
 
           <View style={styles.form}>
             <Input
-              label="Email"
+              label={t('auth.email')}
               value={email}
               onChangeText={setEmail}
-              placeholder="Enter your email"
+              placeholder={t('auth.email')}
               keyboardType="email-address"
               autoCapitalize="none"
               error={errors.email}
             />
 
             <Input
-              label="Password"
+              label={t('auth.password')}
               value={password}
               onChangeText={setPassword}
-              placeholder="Enter your password"
+              placeholder={t('auth.password')}
               secureTextEntry
               error={errors.password}
             />
 
             <Button
-              title={loading ? 'Signing In...' : 'Sign In'}
+              title={loading ? t('auth.signing_in') : t('auth.sign_in')}
               onPress={handleLogin}
               disabled={loading}
               style={styles.loginButton}
@@ -95,9 +97,9 @@ export default function LoginScreen() {
 
             <View style={styles.linkContainer}>
               <Text style={styles.linkText}>
-                Don't have an account?{' '}
+                {t('auth.no_account')}{' '}
                 <Link href="/auth/signup" style={styles.link}>
-                  Sign up
+                  {t('auth.sign_up')}
                 </Link>
               </Text>
             </View>
