@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
-import * as Localization from 'expo-localization'; // 👈 ajout
+import * as Localization from 'expo-localization';
 import { Language, TranslationKeys } from '@/types/i18n';
 import { translations } from '../locales';
 

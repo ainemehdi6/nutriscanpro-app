@@ -5,7 +5,7 @@ import { Language, TranslationKeys } from '@/types/i18n';
 export const translations: Record<Language, TranslationKeys> = {
   en,
   fr,
-  es: en, // fallback
+  es: en,
   de: en,
   it: en,
   pt: en,
