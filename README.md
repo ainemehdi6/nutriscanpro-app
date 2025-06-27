@@ -117,7 +117,7 @@ A beautiful, cross-platform mobile application for intelligent nutrition trackin
 |----------|--------|-------|
 | iOS | ✅ Full Support | Camera, barcode scanning, all features |
 | Android | ✅ Full Support | Camera, barcode scanning, all features |
-| Web | ⚠️ Limited | No camera, barcode scanning and text input only |
+| Web | ✅ Full Support | Camera, barcode scanning, all features |
 
 ## 🏗️ Project Structure
 
