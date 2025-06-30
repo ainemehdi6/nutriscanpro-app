@@ -5,8 +5,10 @@ import { Calendar, ChevronRight } from 'lucide-react-native';
 import { apiService } from '@/services/api';
 import { Meal } from '@/types/api';
 import { ActivityIndicator } from 'react-native';
+import { useI18n } from '@/hooks/useI18n';
 
 export default function HistoryScreen() {
+  const { t, currentLanguage } = useI18n();
   const [meals, setMeals] = useState<Meal[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -29,7 +31,7 @@ export default function HistoryScreen() {
   };
 
   useEffect(() => {
-      loadMealHistory();
+    loadMealHistory();
   }, []);
 
   const getMacros = (meal: Meal) => {
@@ -58,7 +60,7 @@ export default function HistoryScreen() {
 
   const groupMealsByDate = () => {
     const grouped: { [key: string]: Meal[] } = {};
-    
+
     meals.forEach(meal => {
       const date = new Date(meal.date).toDateString();
       if (!grouped[date]) {
@@ -67,9 +69,21 @@ export default function HistoryScreen() {
       grouped[date].push(meal);
     });
 
-    return Object.entries(grouped).sort(([a], [b]) => 
+    return Object.entries(grouped).sort(([a], [b]) =>
       new Date(b).getTime() - new Date(a).getTime()
     );
+  };
+
+  const getLocaleForLanguage = (language: string) => {
+    const localeMap: { [key: string]: string } = {
+      'en': 'en-US',
+      'fr': 'fr-FR',
+      'es': 'es-ES',
+      'de': 'de-DE',
+      'it': 'it-IT',
+      'pt': 'pt-BR',
+    };
+    return localeMap[language] || 'en-US';
   };
 
   const formatDate = (dateString: string) => {
@@ -79,11 +93,12 @@ export default function HistoryScreen() {
     yesterday.setDate(yesterday.getDate() - 1);
 
     if (date.toDateString() === today.toDateString()) {
-      return 'Today';
+      return t('history.today');
     } else if (date.toDateString() === yesterday.toDateString()) {
-      return 'Yesterday';
+      return t('history.yesterday');
     } else {
-      return date.toLocaleDateString('en-US', {
+      const locale = getLocaleForLanguage(currentLanguage);
+      return date.toLocaleDateString(locale, {
         weekday: 'long',
         month: 'short',
         day: 'numeric',
@@ -112,6 +127,18 @@ export default function HistoryScreen() {
     }
   };
 
+  const getMealTypeLabel = (type: string) => {
+    const mealType = type?.toLowerCase() as keyof typeof mealTranslations;
+    return mealTranslations[mealType] || type?.charAt(0).toUpperCase() + type?.slice(1) || 'Meal';
+  };
+
+  const mealTranslations = {
+    breakfast: t('meals.breakfast'),
+    lunch: t('meals.lunch'),
+    dinner: t('meals.dinner'),
+    snack: t('meals.snacks'),
+  };
+
   const groupedMeals = groupMealsByDate();
 
   return (
@@ -122,7 +149,7 @@ export default function HistoryScreen() {
       >
         <View style={styles.headerContent}>
           <Calendar size={24} color="white" />
-          <Text style={styles.headerTitle}>Meal History</Text>
+          <Text style={styles.headerTitle}>{t('history.meal_history')}</Text>
         </View>
       </LinearGradient>
 
@@ -131,15 +158,15 @@ export default function HistoryScreen() {
           <ActivityIndicator size="large" color="#2563EB" />
         </View>
       ) : (
-        <ScrollView 
+        <ScrollView
           style={styles.content}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         >
           {groupedMeals.length === 0 ? (
             <View style={styles.emptyState}>
               <Calendar size={48} color="#9CA3AF" />
-              <Text style={styles.emptyTitle}>No Meal History</Text>
-              <Text style={styles.emptyText}>Start tracking your meals to see your history here</Text>
+              <Text style={styles.emptyTitle}>{t('history.no_meal_history')}</Text>
+              <Text style={styles.emptyText}>{t('history.start_tracking')}</Text>
             </View>
           ) : (
             groupedMeals.map(([date, mealsForDate]) => (
@@ -147,7 +174,7 @@ export default function HistoryScreen() {
                 <View style={styles.dateHeader}>
                   <Text style={styles.dateTitle}>{formatDate(date)}</Text>
                   <Text style={styles.dateSummary}>
-                    {getTotalCaloriesForDate(mealsForDate)} Kcal • {mealsForDate.length} meals
+                    {getTotalCaloriesForDate(mealsForDate)} Kcal • {mealsForDate.length} {t('history.meals')}
                   </Text>
                 </View>
 
@@ -166,10 +193,10 @@ export default function HistoryScreen() {
                           />
                           <View>
                             <Text style={styles.mealType}>
-                              {meal.type.charAt(0).toUpperCase() + meal.type.slice(1)}
+                              {getMealTypeLabel(meal.type)}
                             </Text>
                             <Text style={styles.mealItemCount}>
-                              {meal.items.length} items
+                              {meal.items.length} {t('history.items')}
                             </Text>
                           </View>
                         </View>
@@ -183,15 +210,15 @@ export default function HistoryScreen() {
                       <View style={styles.macroInfo}>
                         <View style={styles.macroItem}>
                           <Text style={styles.macroValue}>{macros.protein}g</Text>
-                          <Text style={styles.macroLabel}>Protein</Text>
+                          <Text style={styles.macroLabel}>{t('results.protein')}</Text>
                         </View>
                         <View style={styles.macroItem}>
                           <Text style={styles.macroValue}>{macros.carbs}g</Text>
-                          <Text style={styles.macroLabel}>Carbs</Text>
+                          <Text style={styles.macroLabel}>{t('results.carbs')}</Text>
                         </View>
                         <View style={styles.macroItem}>
                           <Text style={styles.macroValue}>{macros.fat}g</Text>
-                          <Text style={styles.macroLabel}>Fat</Text>
+                          <Text style={styles.macroLabel}>{t('results.fat')}</Text>
                         </View>
                       </View>
                     </TouchableOpacity>

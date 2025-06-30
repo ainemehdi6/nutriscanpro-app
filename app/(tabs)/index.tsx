@@ -18,7 +18,7 @@ const MEAL_TYPES = [
 
 export default function HomeScreen() {
   const { user } = useAuth();
-  const { t } = useI18n();
+  const { t, currentLanguage } = useI18n();
   const [meals, setMeals] = useState<Meal[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -130,6 +130,18 @@ export default function HomeScreen() {
     return (quantity * food[key]) / food.servingSize;
   };
 
+  const getLocaleForLanguage = (language: string) => {
+    const localeMap: { [key: string]: string } = {
+      'en': 'en-US',
+      'fr': 'fr-FR',
+      'es': 'es-ES',
+      'de': 'de-DE',
+      'it': 'it-IT',
+      'pt': 'pt-BR',
+    };
+    return localeMap[language] || 'en-US';
+  };
+
   const formatDate = (date: Date) => {
     const today = new Date();
     const yesterday = new Date(today);
@@ -140,7 +152,8 @@ export default function HomeScreen() {
     } else if (date.toDateString() === yesterday.toDateString()) {
       return t('history.yesterday');
     } else {
-      return date.toLocaleDateString('en-US', {
+      const locale = getLocaleForLanguage(currentLanguage);
+      return date.toLocaleDateString(locale, {
         weekday: 'long',
         year: 'numeric',
         month: 'long',
@@ -261,7 +274,7 @@ export default function HomeScreen() {
 
                       <Text style={styles.foodCalories}>
                         {item.food?.calories && item.food?.servingSize
-                          ? `${((item.quantity * item.food.calories) / item.food.servingSize).toFixed(0)} Kcal | `
+                          ? `${((item.quantity * item.food.calories) / item.food.servingSize).toFixed(0)} ${t('profile.calories')} | `
                           : ''}
                         {item.food?.carbs && item.food?.servingSize
                           ? `${((item.quantity * item.food.carbs) / item.food.servingSize).toFixed(0)}g ${t('home.of_carbs')} | `
