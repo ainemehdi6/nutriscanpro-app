@@ -86,6 +86,17 @@ export interface TranslationKeys {
     'add_meal.camera_access_required': string;
     'add_meal.camera_permission_desc': string;
     'add_meal.grant_permission': string;
+    'add_meal.product_not_found': string;
+    'add_meal.use_photo_instead': string;
+    'add_meal.barcode_scan_failed': string;
+    'add_meal.requesting_camera_permission': string;
+    'add_meal.no_camera_access': string;
+    'add_meal.analysis_failed': string;
+    'add_meal.use_text_instead': string;
+    'add_meal.camera_error': string;
+    'add_meal.missing_description': string;
+    'add_meal.analysis_failed_description': string;
+    'add_meal.description_analysis_failed': string;
 
     // Results
     'results.scanned_product': string;
@@ -106,6 +117,8 @@ export interface TranslationKeys {
     'results.successfully_added': string;
     'results.no_items': string;
     'results.all_items_removed': string;
+    'results.failed_load_data': string;
+    'results.failed_add_items': string;
 
     // History
     'history.meal_history': string;

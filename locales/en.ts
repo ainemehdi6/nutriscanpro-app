@@ -88,6 +88,17 @@ export const en: TranslationKeys = {
   'add_meal.camera_access_required': 'Camera Access Required',
   'add_meal.camera_permission_desc': 'We need camera access to take photos of your meals',
   'add_meal.grant_permission': 'Grant Permission',
+  'add_meal.product_not_found': 'Product not found. Try another method.',
+  'add_meal.use_photo_instead': 'Use Photo Instead',
+  'add_meal.barcode_scan_failed': 'Failed to scan barcode.',
+  'add_meal.requesting_camera_permission': 'Requesting camera permission...',
+  'add_meal.no_camera_access': 'No access to camera',
+  'add_meal.analysis_failed': 'Could not analyze the image. Please try again or use a different method.',
+  'add_meal.use_text_instead': 'Use Text Instead',
+  'add_meal.camera_error': 'Failed to take picture. Please try again.',
+  'add_meal.missing_description': 'Please describe what you ate.',
+  'add_meal.analysis_failed_description': 'Could not analyze your description. Please try again with more details.',
+  'add_meal.description_analysis_failed': 'Failed to analyze your meal description. Please try again.',
 
   // Results
   'results.scanned_product': 'Scanned Product',
@@ -108,6 +119,8 @@ export const en: TranslationKeys = {
   'results.successfully_added': 'Successfully added {{count}} item(s) to your {{meal}}.',
   'results.no_items': 'No Items',
   'results.all_items_removed': 'All items have been removed. Would you like to try again?',
+  'results.failed_load_data': 'Failed to load meal data',
+  'results.failed_add_items': 'Failed to add meal items. Please try again.',
 
   // History
   'history.meal_history': 'Meal History',

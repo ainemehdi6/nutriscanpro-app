@@ -6,8 +6,10 @@ import { ArrowLeft, Check, Edit3, Trash2 } from 'lucide-react-native';
 import { Food, MealType } from '@/types/api';
 import Button from '@/components/Button';
 import { apiService } from '@/services/api';
+import { useI18n } from '@/hooks/useI18n';
 
 export default function ResultsScreen() {
+  const { t } = useI18n();
   const { mealId, type, method, data, selectedDate } = useLocalSearchParams<{
     mealId?: string;
     type: MealType;
@@ -15,7 +17,7 @@ export default function ResultsScreen() {
     data: string;
     selectedDate: string;
   }>();
-  
+
   const [mealItems, setMealItems] = useState<Food[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -26,7 +28,7 @@ export default function ResultsScreen() {
         setMealItems(parsedItems);
       } catch (error) {
         console.error('Failed to parse mealItems data:', error);
-        Alert.alert('Error', 'Failed to load meal data');
+        Alert.alert(t('common.error'), t('results.failed_load_data'));
         router.back();
       }
     }
@@ -42,39 +44,39 @@ export default function ResultsScreen() {
 
     if (!succes) {
       setLoading(false);
-      Alert.alert('Error', 'Failed to add meal items. Please try again.');
+      Alert.alert(t('common.error'), t('results.failed_add_items'));
       return;
     }
     setLoading(false);
 
     Alert.alert(
-      'Meal Added!',
-      `Successfully added ${mealItems.length} item(s) to your ${type}.`
+      t('results.meal_added'),
+      t('results.successfully_added', { count: mealItems.length, meal: getMealLabel() })
     );
 
     router.push({
-          pathname: '/(tabs)',
-          params: {
-            selectedDate: selectedDate,
-          },
+      pathname: '/(tabs)',
+      params: {
+        selectedDate: selectedDate,
+      },
     });
   };
 
   const handleRemoveItem = (index: number) => {
     const newItems = mealItems.filter((_, i) => i !== index);
     setMealItems(newItems);
-    
+
     if (newItems.length === 0) {
       Alert.alert(
-        'No mealItems',
-        'All mealItems have been removed. Would you like to try again?',
+        t('results.no_items'),
+        t('results.all_items_removed'),
         [
           {
-            text: 'Try Again',
+            text: t('common.retry'),
             onPress: () => router.back(),
           },
           {
-            text: 'Cancel',
+            text: t('common.cancel'),
             onPress: () => router.push('/(tabs)'),
           },
         ]
@@ -115,15 +117,23 @@ export default function ResultsScreen() {
 
   const getMethodTitle = () => {
     switch (method) {
-      case 'barcode': return 'Scanned Product';
-      case 'camera': return 'Photo Analysis';
-      case 'description': return 'Text Analysis';
-      default: return 'Analysis Results';
+      case 'barcode': return t('results.scanned_product');
+      case 'camera': return t('results.photo_analysis');
+      case 'description': return t('results.text_analysis');
+      default: return t('results.analysis_results');
     }
   };
 
   const getMealLabel = () => {
-    return type?.charAt(0).toUpperCase() + type?.slice(1) || 'Meal';
+    const mealType = type?.toLowerCase() as keyof typeof mealTranslations;
+    return mealTranslations[mealType] || type?.charAt(0).toUpperCase() + type?.slice(1) || 'Meal';
+  };
+
+  const mealTranslations = {
+    breakfast: t('meals.breakfast'),
+    lunch: t('meals.lunch'),
+    dinner: t('meals.dinner'),
+    snacks: t('meals.snacks'),
   };
 
   const totals = getTotalNutrition();
@@ -142,35 +152,35 @@ export default function ResultsScreen() {
 
       <ScrollView style={styles.content}>
         <View style={styles.summaryCard}>
-          <Text style={styles.methodLabel}>Adding to {getMealLabel()}</Text>
-          <Text style={styles.itemCount}>{mealItems.length} item(s) found</Text>
-          
+          <Text style={styles.methodLabel}>{t('results.adding_to', { meal: getMealLabel() })}</Text>
+          <Text style={styles.itemCount}>{t('results.items_found', { count: mealItems.length })}</Text>
+
           <View style={styles.nutritionSummary}>
             <View style={styles.caloriesTotal}>
               <Text style={styles.caloriesTotalValue}>{totals.calories.toFixed(0)}</Text>
-              <Text style={styles.caloriesTotalLabel}>Total Calories</Text>
+              <Text style={styles.caloriesTotalLabel}>{t('results.total_calories')}</Text>
             </View>
-              
+
             <View style={styles.macroSummary}>
               <View style={styles.macroItem}>
                 <Text style={styles.macroValue}>{totals.protein.toFixed(0)}g</Text>
-                <Text style={styles.macroLabel}>Protein</Text>
+                <Text style={styles.macroLabel}>{t('results.protein')}</Text>
               </View>
               <View style={styles.macroItem}>
                 <Text style={styles.macroValue}>{totals.carbs.toFixed(0)}g</Text>
-                <Text style={styles.macroLabel}>Carbs</Text>
+                <Text style={styles.macroLabel}>{t('results.carbs')}</Text>
               </View>
               <View style={styles.macroItem}>
                 <Text style={styles.macroValue}>{totals.fat.toFixed(0)}g</Text>
-                <Text style={styles.macroLabel}>Fat</Text>
+                <Text style={styles.macroLabel}>{t('results.fat')}</Text>
               </View>
             </View>
           </View>
         </View>
 
         <View style={styles.itemsSection}>
-          <Text style={styles.sectionTitle}>Detected {getMealLabel()} Meals</Text>
-          
+          <Text style={styles.sectionTitle}>{t('results.detected_items')}</Text>
+
           {mealItems.map((item, index) => (
             <View key={index} style={styles.itemCard}>
               <View style={styles.itemHeader}>
@@ -182,7 +192,7 @@ export default function ResultsScreen() {
                   <Trash2 size={16} color="#EF4444" />
                 </TouchableOpacity>
               </View>
-              
+
               <View style={styles.quantityInputContainer}>
                 <TextInput
                   style={styles.quantityInput}
@@ -197,37 +207,25 @@ export default function ResultsScreen() {
                 />
                 <Text style={styles.unitLabel}>{item.servingUnit}</Text>
               </View>
-              
+
               <View style={styles.itemNutrition}>
-                <View style={styles.nutritionItem}>
-                  <Text style={styles.nutritionValue}>{getMacros(item).calories}Kcal</Text>
-                  <Text style={styles.nutritionLabel}>cal</Text>
-                </View>
-                <View style={styles.nutritionItem}>
-                  <Text style={styles.nutritionValue}>{getMacros(item).protein}g</Text>
-                  <Text style={styles.nutritionLabel}>protein</Text>
-                </View>
-                <View style={styles.nutritionItem}>
-                  <Text style={styles.nutritionValue}>{getMacros(item).carbs}g</Text>
-                  <Text style={styles.nutritionLabel}>carbs</Text>
-                </View>
-                <View style={styles.nutritionItem}>
-                  <Text style={styles.nutritionValue}>{getMacros(item).fat}g</Text>
-                  <Text style={styles.nutritionLabel}>fat</Text>
-                </View>
+                <Text style={styles.itemCalories}>{getMacros(item).calories} cal</Text>
+                <Text style={styles.itemMacros}>
+                  {getMacros(item).protein}g {t('results.protein')} • {getMacros(item).carbs}g {t('results.carbs')} • {getMacros(item).fat}g {t('results.fat')}
+                </Text>
               </View>
             </View>
           ))}
         </View>
 
-        <View style={styles.actionsSection}>
-          <Text style={styles.confirmText}>
-            Review the detected {getMealLabel()} Meals above. Remove any incorrect mealItems, then confirm to add them to your meal.
+        <View style={styles.confirmationSection}>
+          <Text style={styles.confirmationText}>
+            {t('results.confirm_text')}
           </Text>
-          
+
           <Button
-            title={loading ? 'Adding to Meal...' : 'Confirm & Add to Meal'}
-            onPress={() => handleConfirm(mealId || '', mealItems)}
+            title={loading ? t('results.adding_to_meal') : t('results.confirm_add')}
+            onPress={() => mealId && handleConfirm(mealId, mealItems)}
             disabled={loading || mealItems.length === 0}
             style={styles.confirmButton}
           />
@@ -423,6 +421,25 @@ const styles = StyleSheet.create({
   },
   unitLabel: {
     fontSize: 14,
+    color: '#6B7280',
+  },
+  confirmationSection: {
+    marginBottom: 40,
+  },
+  confirmationText: {
+    fontSize: 14,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginBottom: 20,
+    lineHeight: 20,
+  },
+  itemCalories: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1F2937',
+  },
+  itemMacros: {
+    fontSize: 12,
     color: '#6B7280',
   },
 });

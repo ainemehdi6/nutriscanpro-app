@@ -8,10 +8,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { useI18n } from '@/hooks/useI18n';
 import { apiService } from '@/services/api';
 import Button from '@/components/Button';
+import LanguageSelector from '@/components/LanguageSelector';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
-   const { t } = useI18n();
+  const { t } = useI18n();
   const [loading, setLoading] = useState(false);
   const [goalModalVisible, setGoalModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
@@ -59,7 +60,7 @@ export default function ProfileScreen() {
       return;
     }
     try {
-      await apiService.updateProfile(user.id, {name: editName, email: editEmail });
+      await apiService.updateProfile(user.id, { name: editName, email: editEmail });
       Alert.alert('Success', 'User info updated successfully. Please log in again.');
       setEditModalVisible(false);
       await logout();
@@ -105,7 +106,7 @@ export default function ProfileScreen() {
       fats: fatsGrams,
     });
   };
-  
+
   const calculateMacros = (calories: number) => {
     const protein = Math.round((calories * 0.3) / 4);
     const carbs = Math.round((calories * 0.4) / 4);
@@ -134,7 +135,7 @@ export default function ProfileScreen() {
       });
 
       user?.goals?.push(goals);
-      
+
       Alert.alert('Success', 'Goals updated successfully!');
       setGoalModalVisible(false);
     } catch (error) {
@@ -160,7 +161,7 @@ export default function ProfileScreen() {
       </TouchableOpacity>
     );
   };
-  
+
   const handleEditGoals = () => {
     setGoalModalVisible(true);
   };
@@ -183,7 +184,7 @@ export default function ProfileScreen() {
       <ScrollView style={styles.content}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('profile.profile_info')}</Text>
-          
+
           <TouchableOpacity style={styles.settingItem} onPress={() => {
             setEditName(user?.name ?? '');
             setEditEmail(user?.email ?? '');
@@ -209,7 +210,7 @@ export default function ProfileScreen() {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('profile.nutrition_goals')}</Text>
-          
+
           <TouchableOpacity style={styles.settingItem} onPress={handleEditGoals}>
             <View style={styles.settingIcon}>
               <Target size={18} color="#22C55E" />
@@ -217,7 +218,7 @@ export default function ProfileScreen() {
             <View style={styles.settingContent}>
               <Text style={styles.settingTitle}>{t('profile.daily_goals')}</Text>
               <Text style={styles.settingSubtitle}>
-                {user?.goals?.[user.goals.length - 1]?.calories 
+                {user?.goals?.[user.goals.length - 1]?.calories
                   ? `${user.goals[user.goals.length - 1].calories} calories daily`
                   : 'Set your daily nutrition targets'
                 }
@@ -249,7 +250,9 @@ export default function ProfileScreen() {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('profile.settings')}</Text>
-          
+
+          <LanguageSelector />
+
           <TouchableOpacity style={styles.settingItem}>
             <View style={styles.settingIcon}>
               <Settings size={18} color="#6B7280" />
@@ -321,7 +324,7 @@ export default function ProfileScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
-          
+
             <TextInput
               placeholder="Weight (kg)"
               placeholderTextColor="#999"
@@ -538,18 +541,18 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 12,
   },
-  buttonStyle : {
+  buttonStyle: {
     backgroundColor: '#8B5CF6',
     padding: 12,
     borderRadius: 8,
     alignItems: 'center',
   },
-  goalButtonStyle : {
+  goalButtonStyle: {
     padding: 12,
     backgroundColor: '#F3F4F6',
     borderRadius: 8,
     marginTop: 8,
-  }, 
+  },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',

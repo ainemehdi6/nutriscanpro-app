@@ -31,12 +31,9 @@ class I18nService {
 
   private async getStoredLanguage(): Promise<Language | null> {
     try {
-        const language ='fr'
-    /*
-    const language = Platform.OS === 'web' 
-    ? localStorage.getItem(LANGUAGE_KEY)
-    : await SecureStore.getItemAsync(LANGUAGE_KEY);
-    */
+      const language = Platform.OS === 'web' 
+        ? localStorage.getItem(LANGUAGE_KEY)
+        : await SecureStore.getItemAsync(LANGUAGE_KEY);
       return language as Language;
     } catch {
       return null;

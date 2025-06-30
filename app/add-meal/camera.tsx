@@ -6,8 +6,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, Camera, RotateCcw } from 'lucide-react-native';
 import { apiService } from '@/services/api';
 import { MealType } from '@/types/api';
+import { useI18n } from '@/hooks/useI18n';
 
 export default function CameraScreen() {
+  const { t } = useI18n();
   const { type } = useLocalSearchParams<{ type: MealType }>();
   const { mealId } = useLocalSearchParams<{ mealId: string }>();
   const [facing, setFacing] = useState<CameraType>('back');
@@ -35,7 +37,7 @@ export default function CameraScreen() {
 
       if (photo?.uri) {
         const result = await apiService.AnalyseItemByImage(photo.uri);
-        
+
         if (result.foods) {
           router.push({
             pathname: '/add-meal/results',
@@ -49,15 +51,15 @@ export default function CameraScreen() {
         } else {
           console.log('Analysis failed:', result.message);
           Alert.alert(
-            'Analysis Failed',
-            'Could not analyze the image. Please try again or use a different method.',
+            t('common.error'),
+            t('add_meal.analysis_failed'),
             [
               {
-                text: 'Try Again',
+                text: t('common.retry'),
                 onPress: () => setLoading(false),
               },
               {
-                text: 'Use Text Instead',
+                text: t('add_meal.use_text_instead'),
                 onPress: () => router.replace(`/add-meal/description?type=${type}`),
               },
             ]
@@ -67,7 +69,7 @@ export default function CameraScreen() {
     } catch (error) {
       console.log('Error taking picture:', error);
       console.error('Error taking picture:', error);
-      Alert.alert('Camera Error', 'Failed to take picture. Please try again.');
+      Alert.alert(t('common.error'), t('add_meal.camera_error'));
       setLoading(false);
     }
   };
@@ -76,7 +78,7 @@ export default function CameraScreen() {
   if (!permission) {
     return (
       <View style={styles.container}>
-        <Text>Requesting camera permission...</Text>
+        <Text>{t('add_meal.requesting_camera_permission')}</Text>
       </View>
     );
   }
@@ -91,17 +93,17 @@ export default function CameraScreen() {
           <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
             <ArrowLeft size={24} color="white" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Camera</Text>
+          <Text style={styles.headerTitle}>{t('add_meal.take_photo_title')}</Text>
         </LinearGradient>
-        
+
         <View style={styles.permissionContainer}>
           <Camera size={64} color="#9CA3AF" />
-          <Text style={styles.permissionTitle}>Camera Access Required</Text>
+          <Text style={styles.permissionTitle}>{t('add_meal.camera_access_required')}</Text>
           <Text style={styles.permissionText}>
-            We need camera access to take photos of your meals
+            {t('add_meal.camera_permission_desc')}
           </Text>
           <TouchableOpacity style={styles.permissionButton} onPress={requestPermission}>
-            <Text style={styles.permissionButtonText}>Grant Permission</Text>
+            <Text style={styles.permissionButtonText}>{t('add_meal.grant_permission')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -117,7 +119,7 @@ export default function CameraScreen() {
         <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
           <ArrowLeft size={24} color="white" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Take Photo</Text>
+        <Text style={styles.headerTitle}>{t('add_meal.take_photo_title')}</Text>
         <TouchableOpacity style={styles.flipButton} onPress={toggleCameraFacing}>
           <RotateCcw size={20} color="white" />
         </TouchableOpacity>
@@ -129,12 +131,12 @@ export default function CameraScreen() {
           style={StyleSheet.absoluteFill}
           facing={facing}
         />
-        
+
         <View style={styles.overlay}>
           <Text style={styles.instructionText}>
-            {loading ? 'Analyzing image...' : 'Position your meal in the center and tap the capture button'}
+            {loading ? t('add_meal.analyzing_image') : t('add_meal.position_meal')}
           </Text>
-          
+
           <View style={styles.captureContainer}>
             <TouchableOpacity
               style={[styles.captureButton, loading && styles.captureButtonDisabled]}

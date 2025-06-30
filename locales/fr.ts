@@ -88,6 +88,17 @@ export const fr: TranslationKeys = {
   'add_meal.camera_access_required': 'Accès à la caméra requis',
   'add_meal.camera_permission_desc': 'Nous avons besoin d\'accéder à la caméra pour prendre des photos de vos repas',
   'add_meal.grant_permission': 'Accorder la permission',
+  'add_meal.product_not_found': 'Produit non trouvé. Essayez une autre méthode.',
+  'add_meal.use_photo_instead': 'Utiliser la photo à la place',
+  'add_meal.barcode_scan_failed': 'Échec du scan du code-barres.',
+  'add_meal.requesting_camera_permission': 'Demande d\'accès à la caméra...',
+  'add_meal.no_camera_access': 'Aucun accès à la caméra',
+  'add_meal.analysis_failed': 'Impossible d\'analyser l\'image. Veuillez réessayer ou utiliser une autre méthode.',
+  'add_meal.use_text_instead': 'Utiliser le texte à la place',
+  'add_meal.camera_error': 'Échec de la prise de photo. Veuillez réessayer.',
+  'add_meal.missing_description': 'Veuillez décrire ce que vous avez mangé.',
+  'add_meal.analysis_failed_description': 'Impossible d\'analyser votre description. Veuillez réessayer avec plus de détails.',
+  'add_meal.description_analysis_failed': 'Échec de l\'analyse de votre description de repas. Veuillez réessayer.',
 
   // Results
   'results.scanned_product': 'Produit scanné',
@@ -108,6 +119,8 @@ export const fr: TranslationKeys = {
   'results.successfully_added': '{{count}} élément(s) ajouté(s) avec succès à votre {{meal}}.',
   'results.no_items': 'Aucun élément',
   'results.all_items_removed': 'Tous les éléments ont été supprimés. Voulez-vous réessayer ?',
+  'results.failed_load_data': 'Échec du chargement des données du repas',
+  'results.failed_add_items': 'Échec de l\'ajout des éléments du repas. Veuillez réessayer.',
 
   // History
   'history.meal_history': 'Historique des repas',

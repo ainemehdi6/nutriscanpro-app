@@ -6,8 +6,10 @@ import { ArrowLeft, MessageSquare, Send } from 'lucide-react-native';
 import { apiService } from '@/services/api';
 import { MealType } from '@/types/api';
 import Button from '@/components/Button';
+import { useI18n } from '@/hooks/useI18n';
 
 export default function DescriptionScreen() {
+  const { t } = useI18n();
   const { mealId } = useLocalSearchParams<{ mealId: string }>();
   const { type } = useLocalSearchParams<{ type: MealType }>();
   const { selectedDate } = useLocalSearchParams<{ selectedDate: string }>();
@@ -20,7 +22,7 @@ export default function DescriptionScreen() {
 
   const handleSubmit = async () => {
     if (!description.trim()) {
-      Alert.alert('Missing Description', 'Please describe what you ate.');
+      Alert.alert(t('common.error'), t('add_meal.missing_description'));
       return;
     }
 
@@ -41,19 +43,27 @@ export default function DescriptionScreen() {
         });
       } else {
         Alert.alert(
-          'Analysis Failed',
-          result.message || 'Could not analyze your description. Please try again with more details.',
+          t('common.error'),
+          result.message || t('add_meal.analysis_failed_description'),
         );
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to analyze your meal description. Please try again.');
+      Alert.alert(t('common.error'), t('add_meal.description_analysis_failed'));
     } finally {
       setLoading(false);
     }
   };
 
   const getMealLabel = () => {
-    return type?.charAt(0).toUpperCase() + type?.slice(1) || 'Meal';
+    const mealType = type?.toLowerCase() as keyof typeof mealTranslations;
+    return mealTranslations[mealType] || type?.charAt(0).toUpperCase() + type?.slice(1) || 'Meal';
+  };
+
+  const mealTranslations = {
+    breakfast: t('meals.breakfast'),
+    lunch: t('meals.lunch'),
+    dinner: t('meals.dinner'),
+    snacks: t('meals.snacks'),
   };
 
   const exampleDescriptions = [
@@ -79,7 +89,7 @@ export default function DescriptionScreen() {
         <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
           <ArrowLeft size={24} color="white" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Describe {getMealLabel()}</Text>
+        <Text style={styles.headerTitle}>{t('add_meal.describe_title', { meal: getMealLabel() })}</Text>
       </LinearGradient>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -87,9 +97,9 @@ export default function DescriptionScreen() {
           <View style={styles.iconContainer}>
             <MessageSquare size={24} color="#8B5CF6" />
           </View>
-          <Text style={styles.title}>What did you eat?</Text>
+          <Text style={styles.title}>{t('add_meal.what_did_you_eat')}</Text>
           <Text style={styles.subtitle}>
-            Describe your meal in detail. Include ingredients, cooking methods, and portions for better accuracy.
+            {t('add_meal.describe_subtitle')}
           </Text>
 
           <TextInput
@@ -104,7 +114,7 @@ export default function DescriptionScreen() {
           />
 
           <Button
-            title={loading ? 'Analyzing...' : 'Analyze Meal'}
+            title={loading ? t('add_meal.analyzing') : t('add_meal.analyze_meal')}
             onPress={handleSubmit}
             disabled={loading || !description.trim()}
             style={styles.submitButton}
@@ -112,8 +122,8 @@ export default function DescriptionScreen() {
         </View>
 
         <View style={styles.examplesSection}>
-          <Text style={styles.examplesTitle}>Need inspiration? Try these examples:</Text>
-          
+          <Text style={styles.examplesTitle}>{t('add_meal.need_inspiration')}</Text>
+
           {exampleDescriptions.map((example, index) => (
             <TouchableOpacity
               key={index}
@@ -126,11 +136,11 @@ export default function DescriptionScreen() {
         </View>
 
         <View style={styles.tipsSection}>
-          <Text style={styles.tipsTitle}>💡 Tips for better results:</Text>
-          <Text style={styles.tipText}>• Be specific about cooking methods (grilled, fried, steamed)</Text>
-          <Text style={styles.tipText}>• Include portion sizes when possible</Text>
-          <Text style={styles.tipText}>• Mention sauces, dressings, or condiments</Text>
-          <Text style={styles.tipText}>• List main ingredients and sides separately</Text>
+          <Text style={styles.tipsTitle}>{t('add_meal.tips_title')}</Text>
+          <Text style={styles.tipText}>{t('add_meal.tip_1')}</Text>
+          <Text style={styles.tipText}>{t('add_meal.tip_2')}</Text>
+          <Text style={styles.tipText}>{t('add_meal.tip_3')}</Text>
+          <Text style={styles.tipText}>{t('add_meal.tip_4')}</Text>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

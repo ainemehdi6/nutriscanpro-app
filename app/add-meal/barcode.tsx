@@ -6,8 +6,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft } from 'lucide-react-native';
 import { apiService } from '@/services/api';
 import { MealType } from '@/types/api';
+import { useI18n } from '@/hooks/useI18n';
 
 export default function BarcodeScreen() {
+  const { t } = useI18n();
   const { type } = useLocalSearchParams<{ type: MealType }>();
   const { mealId } = useLocalSearchParams<{ mealId: string }>();
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
@@ -41,16 +43,16 @@ export default function BarcodeScreen() {
           },
         });
       } else {
-        Alert.alert('Product Not Found', 'Try another method.', [
-          { text: 'Retry', onPress: () => { setScanned(false); scanningRef.current = false; } },
+        Alert.alert(t('common.error'), t('add_meal.product_not_found'), [
+          { text: t('common.retry'), onPress: () => { setScanned(false); scanningRef.current = false; } },
           {
-            text: 'Use Photo Instead',
+            text: t('add_meal.use_photo_instead'),
             onPress: () => router.replace(`/add-meal/camera?type=${type}&mealId=${mealId}`),
           },
         ]);
       }
     } catch (err) {
-      Alert.alert('Error', 'Failed to scan barcode.');
+      Alert.alert(t('common.error'), t('add_meal.barcode_scan_failed'));
       setScanned(false);
       scanningRef.current = false;
     }
@@ -58,11 +60,11 @@ export default function BarcodeScreen() {
 
 
   if (hasPermission === null) {
-    return <Text>Requesting for camera permission...</Text>;
+    return <Text>{t('add_meal.requesting_camera_permission')}</Text>;
   }
 
   if (hasPermission === false) {
-    return <Text>No access to camera</Text>;
+    return <Text>{t('add_meal.no_camera_access')}</Text>;
   }
 
   return (
@@ -71,7 +73,7 @@ export default function BarcodeScreen() {
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <ArrowLeft size={24} color="white" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Scan Barcode</Text>
+        <Text style={styles.headerTitle}>{t('add_meal.scan_barcode_title')}</Text>
       </LinearGradient>
 
       <CameraView

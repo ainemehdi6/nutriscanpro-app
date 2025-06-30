@@ -5,8 +5,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, QrCode, Camera, MessageSquare } from 'lucide-react-native';
 import { MealType } from '@/types/api';
 import { apiService } from '@/services/api';
+import { useI18n } from '@/hooks/useI18n';
 
 export default function AddMealScreen() {
+  const { t } = useI18n();
   const { mealId: initialMealId, type, selectedDate } = useLocalSearchParams<{
     mealId?: string;
     type: MealType;
@@ -49,13 +51,23 @@ export default function AddMealScreen() {
     });
   };
 
-  const getMealLabel = () => type?.charAt(0).toUpperCase() + type?.slice(1) || 'Meal';
+  const getMealLabel = () => {
+    const mealType = type?.toLowerCase() as keyof typeof mealTranslations;
+    return mealTranslations[mealType] || type?.charAt(0).toUpperCase() + type?.slice(1) || 'Meal';
+  };
+
+  const mealTranslations = {
+    breakfast: t('meals.breakfast'),
+    lunch: t('meals.lunch'),
+    dinner: t('meals.dinner'),
+    snacks: t('meals.snacks'),
+  };
 
   if (loading) {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <ActivityIndicator size="large" color="#F97316" />
-        <Text style={{ marginTop: 10, color: '#6B7280' }}>Preparing your meal...</Text>
+        <Text style={{ marginTop: 10, color: '#6B7280' }}>{t('common.loading')}</Text>
       </View>
     );
   }
@@ -66,20 +78,20 @@ export default function AddMealScreen() {
         <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
           <ArrowLeft size={24} color="white" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Add to {getMealLabel()}</Text>
+        <Text style={styles.headerTitle}>{t('add_meal.add_to', { meal: getMealLabel() })}</Text>
       </LinearGradient>
 
       <View style={styles.content}>
-        <Text style={styles.subtitle}>Choose how you'd like to add your food</Text>
+        <Text style={styles.subtitle}>{t('add_meal.choose_method')}</Text>
 
         <View style={styles.methodsContainer}>
           <TouchableOpacity style={styles.methodCard} onPress={() => navigateTo('/add-meal/barcode')}>
             <View style={[styles.methodIcon, styles.barcodeIcon]}>
               <QrCode size={32} color="white" />
             </View>
-            <Text style={styles.methodTitle}>Scan Barcode</Text>
+            <Text style={styles.methodTitle}>{t('add_meal.scan_barcode')}</Text>
             <Text style={styles.methodDescription}>
-              Scan the barcode on packaged foods for instant nutrition info
+              {t('add_meal.scan_barcode_desc')}
             </Text>
           </TouchableOpacity>
 
@@ -87,9 +99,9 @@ export default function AddMealScreen() {
             <View style={[styles.methodIcon, styles.cameraIcon]}>
               <Camera size={32} color="white" />
             </View>
-            <Text style={styles.methodTitle}>Take Photo</Text>
+            <Text style={styles.methodTitle}>{t('add_meal.take_photo')}</Text>
             <Text style={styles.methodDescription}>
-              Capture a photo of your meal for AI-powered food recognition
+              {t('add_meal.take_photo_desc')}
             </Text>
           </TouchableOpacity>
 
@@ -97,9 +109,9 @@ export default function AddMealScreen() {
             <View style={[styles.methodIcon, styles.textIcon]}>
               <MessageSquare size={32} color="white" />
             </View>
-            <Text style={styles.methodTitle}>Describe Meal</Text>
+            <Text style={styles.methodTitle}>{t('add_meal.describe_meal')}</Text>
             <Text style={styles.methodDescription}>
-              Type what you ate and let AI analyze the nutritional content
+              {t('add_meal.describe_meal_desc')}
             </Text>
           </TouchableOpacity>
         </View>
