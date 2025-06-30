@@ -5,11 +5,13 @@ import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { User, Settings, Target, LogOut, Edit3, Mail, Weight } from 'lucide-react-native';
 import { useAuth } from '@/hooks/useAuth';
+import { useI18n } from '@/hooks/useI18n';
 import { apiService } from '@/services/api';
 import Button from '@/components/Button';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
+   const { t } = useI18n();
   const [loading, setLoading] = useState(false);
   const [goalModalVisible, setGoalModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
@@ -24,8 +26,8 @@ export default function ProfileScreen() {
 
   const handleLogout = async () => {
     Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
+      t('profile.sign_out'),
+      t('profile.sign_out_confirm'),
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -180,7 +182,7 @@ export default function ProfileScreen() {
 
       <ScrollView style={styles.content}>
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Profile Information</Text>
+          <Text style={styles.sectionTitle}>{t('profile.profile_info')}</Text>
           
           <TouchableOpacity style={styles.settingItem} onPress={() => {
             setEditName(user?.name ?? '');
@@ -189,8 +191,8 @@ export default function ProfileScreen() {
           }}>
             <View style={styles.settingIcon}><Edit3 size={18} color="#8B5CF6" /></View>
             <View style={styles.settingContent}>
-              <Text style={styles.settingTitle}>Edit Profile</Text>
-              <Text style={styles.settingSubtitle}>Update your personal information</Text>
+              <Text style={styles.settingTitle}>{t('profile.edit_profile')}</Text>
+              <Text style={styles.settingSubtitle}>{t('profile.edit_profile_desc')}</Text>
             </View>
           </TouchableOpacity>
 
@@ -199,21 +201,21 @@ export default function ProfileScreen() {
               <Mail size={18} color="#8B5CF6" />
             </View>
             <View style={styles.settingContent}>
-              <Text style={styles.settingTitle}>Email</Text>
+              <Text style={styles.settingTitle}>{t('profile.edit_profile')}</Text>
               <Text style={styles.settingSubtitle}>{user?.email}</Text>
             </View>
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Nutrition Goals</Text>
+          <Text style={styles.sectionTitle}>{t('profile.nutrition_goals')}</Text>
           
           <TouchableOpacity style={styles.settingItem} onPress={handleEditGoals}>
             <View style={styles.settingIcon}>
               <Target size={18} color="#22C55E" />
             </View>
             <View style={styles.settingContent}>
-              <Text style={styles.settingTitle}>Daily Goals</Text>
+              <Text style={styles.settingTitle}>{t('profile.daily_goals')}</Text>
               <Text style={styles.settingSubtitle}>
                 {user?.goals?.[user.goals.length - 1]?.calories 
                   ? `${user.goals[user.goals.length - 1].calories} calories daily`
@@ -226,19 +228,19 @@ export default function ProfileScreen() {
           {user?.goals?.[0] && (
             <View style={styles.goalsContainer}>
               <View style={styles.goalItem}>
-                <Text style={styles.goalLabel}>Calories</Text>
+                <Text style={styles.goalLabel}>{t('profile.calories')}</Text>
                 <Text style={styles.goalValue}>{user.goals[user.goals.length - 1]?.calories}</Text>
               </View>
               <View style={styles.goalItem}>
-                <Text style={styles.goalLabel}>Protein</Text>
+                <Text style={styles.goalLabel}>{t('results.protein')}</Text>
                 <Text style={styles.goalValue}>{user.goals[user.goals.length - 1]?.protein}g</Text>
               </View>
               <View style={styles.goalItem}>
-                <Text style={styles.goalLabel}>Carbs</Text>
+                <Text style={styles.goalLabel}>{t('results.carbs')}</Text>
                 <Text style={styles.goalValue}>{user.goals[user.goals.length - 1]?.carbs}g</Text>
               </View>
               <View style={styles.goalItem}>
-                <Text style={styles.goalLabel}>Fat</Text>
+                <Text style={styles.goalLabel}>{t('results.fat')}</Text>
                 <Text style={styles.goalValue}>{user.goals[user.goals.length - 1]?.fat}g</Text>
               </View>
             </View>
@@ -246,15 +248,15 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Settings</Text>
+          <Text style={styles.sectionTitle}>{t('profile.settings')}</Text>
           
           <TouchableOpacity style={styles.settingItem}>
             <View style={styles.settingIcon}>
               <Settings size={18} color="#6B7280" />
             </View>
             <View style={styles.settingContent}>
-              <Text style={styles.settingTitle}>App Settings</Text>
-              <Text style={styles.settingSubtitle}>Notifications, preferences, and more</Text>
+              <Text style={styles.settingTitle}>{t('profile.app_settings')}</Text>
+              <Text style={styles.settingSubtitle}>{t('profile.app_settings_desc')}</Text>
             </View>
           </TouchableOpacity>
         </View>

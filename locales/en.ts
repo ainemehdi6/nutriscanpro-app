@@ -33,7 +33,7 @@ export const en: TranslationKeys = {
   // Home
   'home.hello': 'Hello, {{name}}!',
   'home.today_calories': "Today's Calories",
-  'home.of_goal': 'of {{goal}} goal',
+  'home.of_goal': 'of {{goal}}',
   'home.today_meals': "Today's Meals",
   'home.no_items_added': 'No items added',
   'home.items_calories': '{{count}} items • {{calories}} cal',
