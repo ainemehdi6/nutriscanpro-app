@@ -1,14 +1,19 @@
 import { en } from './en';
 import { fr } from './fr';
+import { es } from './es';
+import { de } from './de';
+import { it } from './it';
+import { pt } from './pt';
+
 import { Language, TranslationKeys } from '@/types/i18n';
 
 export const translations: Record<Language, TranslationKeys> = {
   en,
   fr,
-  es: en,
-  de: en,
-  it: en,
-  pt: en,
+  es,
+  de,
+  it,
+  pt,
 };
 
 export const availableLanguages = [
