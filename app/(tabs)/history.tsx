@@ -1,44 +1,73 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Calendar, ChevronRight } from 'lucide-react-native';
 import { apiService } from '@/services/api';
 import { Meal } from '@/types/api';
-import { ActivityIndicator } from 'react-native';
 import { useI18n } from '@/hooks/useI18n';
+import { useDateFormatter } from '@/hooks/useDateFormatter';
+import LoadingScreen from '@/components/LoadingScreen';
+import ErrorBoundary from '@/components/ErrorBoundary';
+
+interface HistoryMeal extends Meal {
+  totalCalories?: number;
+}
 
 export default function HistoryScreen() {
-  const { t, currentLanguage } = useI18n();
-  const [meals, setMeals] = useState<Meal[]>([]);
+  const { t } = useI18n();
+  const { formatDateShort } = useDateFormatter();
+  const [meals, setMeals] = useState<HistoryMeal[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const loadMealHistory = async () => {
+  const loadMealHistory = useCallback(async () => {
     try {
+      setError(null);
       const history = await apiService.getMealHistory();
-      setMeals(history);
-    } catch (error) {
-      console.error('Failed to load meal history:', error);
+
+      // Calculate calories for each meal
+      const mealsWithCalories = history.map(meal => ({
+        ...meal,
+        totalCalories: Math.round(
+          meal.items.reduce((sum, item) => {
+            if (
+              item.food &&
+              typeof item.food.calories === 'number' &&
+              typeof item.food.servingSize === 'number' &&
+              typeof item.quantity === 'number'
+            ) {
+              return sum + (item.quantity * item.food.calories) / item.food.servingSize;
+            }
+            return sum;
+          }, 0)
+        ),
+      }));
+
+      setMeals(mealsWithCalories);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load meal history';
+      setError(errorMessage);
+      console.error('Failed to load meal history:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const onRefresh = async () => {
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await loadMealHistory();
     setRefreshing(false);
-  };
+  }, [loadMealHistory]);
 
   useEffect(() => {
     loadMealHistory();
-  }, []);
+  }, [loadMealHistory]);
 
-  const getMacros = (meal: Meal) => {
+  const getMacros = useCallback((meal: HistoryMeal) => {
     let protein = 0;
     let carbs = 0;
     let fat = 0;
-    let calories = 0;
 
     meal.items.forEach(item => {
       const { food, quantity } = item;
@@ -47,19 +76,18 @@ export default function HistoryScreen() {
       protein += (food.protein ?? 0) * ratio;
       carbs += (food.carbs ?? 0) * ratio;
       fat += (food.fat ?? 0) * ratio;
-      calories += (food.calories ?? 0) * ratio;
     });
 
     return {
       protein: protein.toFixed(0),
       carbs: carbs.toFixed(0),
       fat: fat.toFixed(0),
-      calories: calories.toFixed(0),
+      calories: meal.totalCalories?.toFixed(0) || '0',
     };
-  };
+  }, []);
 
-  const groupMealsByDate = () => {
-    const grouped: { [key: string]: Meal[] } = {};
+  const groupMealsByDate = useMemo(() => {
+    const grouped: { [key: string]: HistoryMeal[] } = {};
 
     meals.forEach(meal => {
       const date = new Date(meal.date).toDateString();
@@ -72,52 +100,15 @@ export default function HistoryScreen() {
     return Object.entries(grouped).sort(([a], [b]) =>
       new Date(b).getTime() - new Date(a).getTime()
     );
-  };
+  }, [meals]);
 
-  const getLocaleForLanguage = (language: string) => {
-    const localeMap: { [key: string]: string } = {
-      'en': 'en-US',
-      'fr': 'fr-FR',
-      'es': 'es-ES',
-      'de': 'de-DE',
-      'it': 'it-IT',
-      'pt': 'pt-BR',
-    };
-    return localeMap[language] || 'en-US';
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    if (date.toDateString() === today.toDateString()) {
-      return t('history.today');
-    } else if (date.toDateString() === yesterday.toDateString()) {
-      return t('history.yesterday');
-    } else {
-      const locale = getLocaleForLanguage(currentLanguage);
-      return date.toLocaleDateString(locale, {
-        weekday: 'long',
-        month: 'short',
-        day: 'numeric',
-      });
-    }
-  };
-
-  const getTotalCaloriesForDate = (mealsForDate: Meal[]) => {
+  const getTotalCaloriesForDate = useCallback((mealsForDate: HistoryMeal[]) => {
     return mealsForDate.reduce((total, meal) => {
-      const mealCalories = meal.items.reduce((mealTotal, item) => {
-        const calories = item.food?.calories ?? 0;
-        const servingSize = item.food?.servingSize ?? 1;
-        return mealTotal + calories * (item.quantity / servingSize);
-      }, 0);
-      return total + mealCalories;
+      return total + (meal.totalCalories || 0);
     }, 0).toFixed(0);
-  };
+  }, []);
 
-  const getMealTypeColor = (type: string) => {
+  const getMealTypeColor = useCallback((type: string) => {
     switch (type) {
       case 'breakfast': return '#F59E0B';
       case 'lunch': return '#EF4444';
@@ -125,54 +116,67 @@ export default function HistoryScreen() {
       case 'snack': return '#06B6D4';
       default: return '#6B7280';
     }
-  };
+  }, []);
 
-  const getMealTypeLabel = (type: string) => {
+  const getMealTypeLabel = useCallback((type: string) => {
     const mealType = type?.toLowerCase() as keyof typeof mealTranslations;
     return mealTranslations[mealType] || type?.charAt(0).toUpperCase() + type?.slice(1) || 'Meal';
-  };
+  }, []);
 
-  const mealTranslations = {
+  const mealTranslations = useMemo(() => ({
     breakfast: t('meals.breakfast'),
     lunch: t('meals.lunch'),
     dinner: t('meals.dinner'),
     snack: t('meals.snacks'),
-  };
+  }), [t]);
 
-  const groupedMeals = groupMealsByDate();
+  if (loading && !refreshing) {
+    return <LoadingScreen message={t('common.loading')} />;
+  }
+
+  if (error) {
+    return (
+      <ErrorBoundary>
+        <View style={styles.errorContainer}>
+          <Calendar size={48} color="#EF4444" />
+          <Text style={styles.errorTitle}>{t('common.error')}</Text>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={onRefresh}>
+            <Text style={styles.retryText}>{t('common.retry')}</Text>
+          </TouchableOpacity>
+        </View>
+      </ErrorBoundary>
+    );
+  }
 
   return (
-    <View style={styles.container}>
-      <LinearGradient
-        colors={['#3B82F6', '#2563EB']}
-        style={styles.header}
-      >
-        <View style={styles.headerContent}>
-          <Calendar size={24} color="white" />
-          <Text style={styles.headerTitle}>{t('history.meal_history')}</Text>
-        </View>
-      </LinearGradient>
+    <ErrorBoundary>
+      <View style={styles.container}>
+        <LinearGradient
+          colors={['#3B82F6', '#2563EB']}
+          style={styles.header}
+        >
+          <View style={styles.headerContent}>
+            <Calendar size={24} color="white" />
+            <Text style={styles.headerTitle}>{t('history.meal_history')}</Text>
+          </View>
+        </LinearGradient>
 
-      {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#2563EB" />
-        </View>
-      ) : (
         <ScrollView
           style={styles.content}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         >
-          {groupedMeals.length === 0 ? (
+          {groupMealsByDate.length === 0 ? (
             <View style={styles.emptyState}>
               <Calendar size={48} color="#9CA3AF" />
               <Text style={styles.emptyTitle}>{t('history.no_meal_history')}</Text>
               <Text style={styles.emptyText}>{t('history.start_tracking')}</Text>
             </View>
           ) : (
-            groupedMeals.map(([date, mealsForDate]) => (
+            groupMealsByDate.map(([date, mealsForDate]) => (
               <View key={date} style={styles.dateSection}>
                 <View style={styles.dateHeader}>
-                  <Text style={styles.dateTitle}>{formatDate(date)}</Text>
+                  <Text style={styles.dateTitle}>{formatDateShort(date)}</Text>
                   <Text style={styles.dateSummary}>
                     {getTotalCaloriesForDate(mealsForDate)} Kcal • {mealsForDate.length} {t('history.meals')}
                   </Text>
@@ -228,18 +232,12 @@ export default function HistoryScreen() {
             ))
           )}
         </ScrollView>
-      )}
-    </View>
+      </View>
+    </ErrorBoundary>
   );
 }
 
 const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-  },
   container: {
     flex: 1,
     backgroundColor: '#F8FAFC',
@@ -279,6 +277,36 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6B7280',
     textAlign: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#374151',
+    marginTop: 12,
+    marginBottom: 4,
+  },
+  errorText: {
+    fontSize: 14,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  retryButton: {
+    backgroundColor: '#22C55E',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  retryText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
   },
   dateSection: {
     marginBottom: 24,
