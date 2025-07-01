@@ -1,5 +1,5 @@
 import { Platform, Alert } from 'react-native';
-import { User, AuthResponse, Meal, AddItemResponse, MealType, AnalyseMealResponse, Food, Goals, DeleteItemResponse } from '@/types/api';
+import { User, AuthResponse, Meal, AddItemResponse, MealType, AnalyseMealResponse, Food, Goals, DeleteItemResponse, Exercise } from '@/types/api';
 import { router } from 'expo-router';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
@@ -171,6 +171,16 @@ class ApiService {
       body: JSON.stringify(goals),
     });
   }
+
+  async getExerciseExamples(params?: { muscle?: string; equipment?: string; limit?: number; offset?: number }) {
+  const query = [];
+  if (params?.muscle) query.push(`muscle=${encodeURIComponent(params.muscle)}`);
+  if (params?.equipment) query.push(`equipment=${encodeURIComponent(params.equipment)}`);
+  if (params?.limit) query.push(`limit=${params.limit}`);
+  if (params?.offset) query.push(`offset=${params.offset}`);
+  const url = `/exercises/examples${query.length ? '?' + query.join('&') : ''}`;
+  return this.makeRequest<Exercise[]>(url);
+}
 }
 
 export const apiService = new ApiService();

@@ -193,4 +193,21 @@ export const fr: TranslationKeys = {
   'months.october': 'Octobre',
   'months.november': 'Novembre',
   'months.december': 'Décembre',
+
+  // Exercises
+  'exercises.title': 'Bibliothèque d\'exercices',
+  'exercises.subtitle': 'Découvrez et apprenez de nouveaux exercices',
+  'exercises.muscle': 'Muscle',
+  'exercises.equipment': 'Équipement',
+  'exercises.clear_filters': 'Effacer les filtres',
+  'exercises.loading': 'Chargement des exercices...',
+  'exercises.error': 'Échec du chargement des exercices',
+  'exercises.retry': 'Réessayer',
+  'exercises.no_exercises': 'Aucun exercice trouvé',
+  'exercises.no_exercises_subtitle': 'Essayez d\'ajuster vos filtres',
+  'exercises.view_details': 'Voir les détails',
+  'exercises.instructions': 'Instructions',
+  'exercises.watch_video': 'Regarder le tutoriel vidéo',
+  'exercises.page': 'Page',
+  'exercises.of': 'sur',
 };

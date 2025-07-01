@@ -193,4 +193,21 @@ export const pt: TranslationKeys = {
   'months.october': 'Outubro',
   'months.november': 'Novembro',
   'months.december': 'Dezembro',
+
+  // Exercises
+  'exercises.title': 'Biblioteca de Exercícios',
+  'exercises.subtitle': 'Descubra e aprenda novos exercícios',
+  'exercises.muscle': 'Músculo',
+  'exercises.equipment': 'Equipamento',
+  'exercises.clear_filters': 'Limpar Filtros',
+  'exercises.loading': 'Carregando exercícios...',
+  'exercises.error': 'Falha ao carregar exercícios',
+  'exercises.retry': 'Tentar Novamente',
+  'exercises.no_exercises': 'Nenhum exercício encontrado',
+  'exercises.no_exercises_subtitle': 'Tente ajustar seus filtros',
+  'exercises.view_details': 'Ver Detalhes',
+  'exercises.instructions': 'Instruções',
+  'exercises.watch_video': 'Assistir Tutorial em Vídeo',
+  'exercises.page': 'Página',
+  'exercises.of': 'de',
 }; 

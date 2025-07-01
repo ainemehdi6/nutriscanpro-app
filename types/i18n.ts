@@ -191,6 +191,23 @@ export interface TranslationKeys {
     'months.october': string;
     'months.november': string;
     'months.december': string;
+
+    // Exercises
+    'exercises.title': string;
+    'exercises.subtitle': string;
+    'exercises.muscle': string;
+    'exercises.equipment': string;
+    'exercises.clear_filters': string;
+    'exercises.loading': string;
+    'exercises.error': string;
+    'exercises.retry': string;
+    'exercises.no_exercises': string;
+    'exercises.no_exercises_subtitle': string;
+    'exercises.view_details': string;
+    'exercises.instructions': string;
+    'exercises.watch_video': string;
+    'exercises.page': string;
+    'exercises.of': string;
 }
 
 export type Language = 'en' | 'fr' | 'es' | 'de' | 'it' | 'pt';

@@ -17,6 +17,16 @@ export interface AuthResponse {
   user: User;
 }
 
+
+export type Exercise = {
+  name: string;
+  description: string[];
+  image: string;
+  video: string;
+  muscle: string;
+  equipment: string;
+};
+
 export interface FoodItem {
   id: string;
   name: string;

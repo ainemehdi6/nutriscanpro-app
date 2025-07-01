@@ -193,4 +193,21 @@ export const en: TranslationKeys = {
   'months.october': 'October',
   'months.november': 'November',
   'months.december': 'December',
+
+  // Exercises
+  'exercises.title': 'Exercise Library',
+  'exercises.subtitle': 'Discover and learn new exercises',
+  'exercises.muscle': 'Muscle',
+  'exercises.equipment': 'Equipment',
+  'exercises.clear_filters': 'Clear Filters',
+  'exercises.loading': 'Loading exercises...',
+  'exercises.error': 'Failed to load exercises',
+  'exercises.retry': 'Retry',
+  'exercises.no_exercises': 'No exercises found',
+  'exercises.no_exercises_subtitle': 'Try adjusting your filters',
+  'exercises.view_details': 'View Details',
+  'exercises.instructions': 'Instructions',
+  'exercises.watch_video': 'Watch Video Tutorial',
+  'exercises.page': 'Page',
+  'exercises.of': 'of',
 };
