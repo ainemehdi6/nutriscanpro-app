@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Calendar, ChevronRight } from 'lucide-react-native';
+import { Calendar, ChevronRight, Loader2 } from 'lucide-react-native';
 import { apiService } from '@/services/api';
 import { Meal } from '@/types/api';
-import { ActivityIndicator } from 'react-native';
 import { useI18n } from '@/hooks/useI18n';
 
 export default function HistoryScreen() {
@@ -12,26 +11,59 @@ export default function HistoryScreen() {
   const [meals, setMeals] = useState<Meal[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
 
-  const loadMealHistory = async () => {
+  const ITEMS_PER_PAGE = 20;
+
+  const loadMealHistory = async (pageNumber: number = 1, append: boolean = false) => {
     try {
+      if (pageNumber === 1) {
+        setLoading(true);
+      } else {
+        setLoadingMore(true);
+      }
+
       const history = await apiService.getMealHistory();
-      setMeals(history);
+
+      // Simulate pagination by slicing the data
+      const startIndex = (pageNumber - 1) * ITEMS_PER_PAGE;
+      const endIndex = startIndex + ITEMS_PER_PAGE;
+      const paginatedHistory = history.slice(startIndex, endIndex);
+
+      if (append) {
+        setMeals(prev => [...prev, ...paginatedHistory]);
+      } else {
+        setMeals(paginatedHistory);
+      }
+
+      // Check if there are more items
+      setHasMore(endIndex < history.length);
+      setPage(pageNumber);
+
     } catch (error) {
       console.error('Failed to load meal history:', error);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadMealHistory();
+    await loadMealHistory(1, false);
     setRefreshing(false);
   };
 
+  const loadMore = async () => {
+    if (!loadingMore && hasMore) {
+      await loadMealHistory(page + 1, true);
+    }
+  };
+
   useEffect(() => {
-    loadMealHistory();
+    loadMealHistory(1, false);
   }, []);
 
   const getMacros = (meal: Meal) => {
@@ -140,6 +172,7 @@ export default function HistoryScreen() {
   };
 
   const groupedMeals = groupMealsByDate();
+  const totalMeals = meals.length;
 
   return (
     <View style={styles.container}>
@@ -149,7 +182,14 @@ export default function HistoryScreen() {
       >
         <View style={styles.headerContent}>
           <Calendar size={24} color="white" />
-          <Text style={styles.headerTitle}>{t('history.meal_history')}</Text>
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.headerTitle}>{t('history.meal_history')}</Text>
+            {totalMeals > 0 && (
+              <Text style={styles.headerSubtitle}>
+                {totalMeals} {t('history.meals')} • Page {page}
+              </Text>
+            )}
+          </View>
         </View>
       </LinearGradient>
 
@@ -161,6 +201,15 @@ export default function HistoryScreen() {
         <ScrollView
           style={styles.content}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          onScroll={({ nativeEvent }) => {
+            const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
+            const paddingToBottom = 20;
+            if (layoutMeasurement.height + contentOffset.y >=
+              contentSize.height - paddingToBottom) {
+              loadMore();
+            }
+          }}
+          scrollEventThrottle={400}
         >
           {groupedMeals.length === 0 ? (
             <View style={styles.emptyState}>
@@ -227,6 +276,50 @@ export default function HistoryScreen() {
               </View>
             ))
           )}
+
+          {/* Loading More Indicator */}
+          {loadingMore && (
+            <View style={styles.loadingMoreContainer}>
+              <Loader2 size={20} color="#6B7280" />
+              <Text style={styles.loadingMoreText}>{t('common.loading')}</Text>
+            </View>
+          )}
+
+          {/* End of List Indicator */}
+          {!hasMore && meals.length > 0 && (
+            <View style={styles.endOfListContainer}>
+              <Text style={styles.endOfListText}>End of meal history</Text>
+            </View>
+          )}
+
+          {/* Manual Pagination Controls */}
+          {meals.length > 0 && (
+            <View style={styles.paginationContainer}>
+              <TouchableOpacity
+                style={[styles.paginationButton, page === 1 && styles.paginationButtonDisabled]}
+                onPress={() => loadMealHistory(page - 1, false)}
+                disabled={page === 1}
+              >
+                <Text style={[styles.paginationButtonText, page === 1 && styles.paginationButtonTextDisabled]}>
+                  Previous
+                </Text>
+              </TouchableOpacity>
+
+              <Text style={styles.paginationText}>
+                Page {page}
+              </Text>
+
+              <TouchableOpacity
+                style={[styles.paginationButton, !hasMore && styles.paginationButtonDisabled]}
+                onPress={() => loadMealHistory(page + 1, false)}
+                disabled={!hasMore}
+              >
+                <Text style={[styles.paginationButtonText, !hasMore && styles.paginationButtonTextDisabled]}>
+                  Next
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </ScrollView>
       )}
     </View>
@@ -253,11 +346,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  headerTextContainer: {
+    marginLeft: 12,
+    flex: 1,
+  },
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
     color: 'white',
-    marginLeft: 12,
+  },
+  headerSubtitle: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginTop: 2,
   },
   content: {
     flex: 1,
@@ -364,5 +465,59 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#6B7280',
     textTransform: 'uppercase',
+  },
+  loadingMoreContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 20,
+    gap: 8,
+  },
+  loadingMoreText: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  endOfListContainer: {
+    alignItems: 'center',
+    paddingVertical: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+  },
+  endOfListText: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    fontStyle: 'italic',
+  },
+  paginationContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+    backgroundColor: 'white',
+  },
+  paginationButton: {
+    backgroundColor: '#3B82F6',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  paginationButtonDisabled: {
+    backgroundColor: '#E5E7EB',
+  },
+  paginationButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  paginationButtonTextDisabled: {
+    color: '#9CA3AF',
+  },
+  paginationText: {
+    fontSize: 14,
+    color: '#6B7280',
+    fontWeight: '500',
   },
 });
