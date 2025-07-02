@@ -10,7 +10,7 @@ export const en: TranslationKeys = {
   'auth.signing_in': 'Signing In...',
   'auth.no_account': "Don't have an account?",
   'auth.sign_up': 'Sign up',
-  'auth.join_app': 'Join NutriTracker',
+  'auth.join_app': 'Join NutriScanPro',
   'auth.create_account_subtitle': 'Create your account to start your nutrition journey',
   'auth.full_name': 'Full Name',
   'auth.confirm_password': 'Confirm Password',

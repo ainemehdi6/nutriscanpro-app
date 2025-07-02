@@ -3,7 +3,6 @@ import { i18nService } from '@/services/i18n';
 import { Language, TranslationKeys } from '@/types/i18n';
 
 export function useI18n() {
-    console.log(i18nService.getCurrentLanguage());
   const [currentLanguage, setCurrentLanguage] = useState<Language>(i18nService.getCurrentLanguage());
 
   useEffect(() => {

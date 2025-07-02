@@ -13,7 +13,6 @@ class I18nService {
   async initialize(): Promise<Language> {
     try {
       const savedLanguage = await this.getStoredLanguage();
-      console.log(savedLanguage)
       if (savedLanguage) {
         this.currentLanguage = savedLanguage;
       } else {
@@ -55,7 +54,7 @@ class I18nService {
   }
 
   private isValidLanguage(lang: string): boolean {
-    return ['en', 'fr', 'es', 'de', 'it', 'pt'].includes(lang);
+    return ['en', 'fr'].includes(lang);
   }
 
   async setLanguage(language: Language): Promise<void> {

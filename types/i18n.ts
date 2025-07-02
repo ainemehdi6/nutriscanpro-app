@@ -210,4 +210,4 @@ export interface TranslationKeys {
     'exercises.of': string;
 }
 
-export type Language = 'en' | 'fr' | 'es' | 'de' | 'it' | 'pt';
+export type Language = 'en' | 'fr';

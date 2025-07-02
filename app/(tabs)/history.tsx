@@ -110,10 +110,6 @@ export default function HistoryScreen() {
     const localeMap: { [key: string]: string } = {
       'en': 'en-US',
       'fr': 'fr-FR',
-      'es': 'es-ES',
-      'de': 'de-DE',
-      'it': 'it-IT',
-      'pt': 'pt-BR',
     };
     return localeMap[language] || 'en-US';
   };

@@ -49,7 +49,6 @@ export default function CameraScreen() {
             },
           });
         } else {
-          console.log('Analysis failed:', result.message);
           Alert.alert(
             t('common.error'),
             t('add_meal.analysis_failed'),
@@ -67,7 +66,6 @@ export default function CameraScreen() {
         }
       }
     } catch (error) {
-      console.log('Error taking picture:', error);
       console.error('Error taking picture:', error);
       Alert.alert(t('common.error'), t('add_meal.camera_error'));
       setLoading(false);

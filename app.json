@@ -1,19 +1,19 @@
 {
   "expo": {
-    "name": "NutriTracker",
-    "slug": "nutritracker",
+    "name": "NutriScanPro",
+    "slug": "nutriscanpro",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "nutritracker",
+    "scheme": "nutriscanpro",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.elmehdielaine.nutritracker"
+      "bundleIdentifier": "com.elmehdielaine.nutriscanpro"
     },
     "android": {
-      "package": "com.elmehdielaine.nutritracker"
+      "package": "com.elmehdielaine.nutriscanpro"
     },
     "web": {
       "bundler": "metro",
