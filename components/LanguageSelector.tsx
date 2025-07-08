@@ -6,9 +6,10 @@ import { Language } from '@/types/i18n';
 
 interface LanguageSelectorProps {
     onLanguageChange?: (language: Language) => void;
+    compact?: boolean;
 }
 
-export default function LanguageSelector({ onLanguageChange }: LanguageSelectorProps) {
+export default function LanguageSelector({ onLanguageChange, compact = false }: LanguageSelectorProps) {
     const { t, currentLanguage, setLanguage } = useI18n();
     const [modalVisible, setModalVisible] = useState(false);
 
@@ -23,6 +24,59 @@ export default function LanguageSelector({ onLanguageChange }: LanguageSelectorP
     };
 
     const currentLanguageInfo = availableLanguages.find(lang => lang.code === currentLanguage);
+
+    if (compact) {
+        return (
+            <>
+                <TouchableOpacity
+                    style={styles.compactLanguageButton}
+                    onPress={() => setModalVisible(true)}
+                >
+                    <Text style={styles.compactLanguageFlag}>{currentLanguageInfo?.flag}</Text>
+                </TouchableOpacity>
+
+                <Modal
+                    visible={modalVisible}
+                    transparent
+                    animationType="fade"
+                    onRequestClose={() => setModalVisible(false)}
+                >
+                    <View style={styles.modalOverlay}>
+                        <View style={styles.compactModalContent}>
+                            <Text style={styles.modalTitle}>{t('profile.language')}</Text>
+
+                            {availableLanguages.map((language) => (
+                                <TouchableOpacity
+                                    key={language.code}
+                                    style={[
+                                        styles.languageOption,
+                                        currentLanguage === language.code && styles.selectedLanguage
+                                    ]}
+                                    onPress={() => handleLanguageSelect(language.code)}
+                                >
+                                    <Text style={styles.languageFlag}>{language.flag}</Text>
+                                    <View style={styles.languageOptionInfo}>
+                                        <Text style={styles.languageOptionName}>{language.nativeName}</Text>
+                                        <Text style={styles.languageOptionSubtitle}>{language.name}</Text>
+                                    </View>
+                                    {currentLanguage === language.code && (
+                                        <Text style={styles.selectedIndicator}>✓</Text>
+                                    )}
+                                </TouchableOpacity>
+                            ))}
+
+                            <TouchableOpacity
+                                style={styles.cancelButton}
+                                onPress={() => setModalVisible(false)}
+                            >
+                                <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </Modal>
+            </>
+        );
+    }
 
     return (
         <>
@@ -81,6 +135,33 @@ export default function LanguageSelector({ onLanguageChange }: LanguageSelectorP
 }
 
 const styles = StyleSheet.create({
+    compactLanguageButton: {
+        position: 'absolute',
+        top: 50,
+        right: 20,
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+        zIndex: 1000,
+    },
+    compactLanguageFlag: {
+        fontSize: 20,
+    },
+    compactModalContent: {
+        width: '80%',
+        backgroundColor: 'white',
+        borderRadius: 16,
+        padding: 20,
+        maxHeight: '70%',
+    },
     languageButton: {
         flexDirection: 'row',
         alignItems: 'center',

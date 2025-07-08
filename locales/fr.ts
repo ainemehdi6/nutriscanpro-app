@@ -99,6 +99,14 @@ export const fr: TranslationKeys = {
   'add_meal.missing_description': 'Veuillez décrire ce que vous avez mangé.',
   'add_meal.analysis_failed_description': 'Impossible d\'analyser votre description. Veuillez réessayer avec plus de détails.',
   'add_meal.description_analysis_failed': 'Échec de l\'analyse de votre description de repas. Veuillez réessayer.',
+  'add_meal.example_1': 'Blanc de poulet grillé avec brocoli vapeur et riz complet',
+  'add_meal.example_2': 'Yaourt grec avec fruits rouges et granola',
+  'add_meal.example_3': 'Salade César avec saumon grillé et croûtons',
+  'add_meal.example_4': 'Sandwich beurre de cacahuète et banane sur pain complet',
+  'add_meal.example_5': 'Sauté de légumes avec tofu et riz jasmin',
+  'add_meal.example_6': 'Omelette aux épinards, tomates et feta',
+  'add_meal.example_7': 'Wrap de dinde et avocat avec bâtonnets de carotte',
+  'add_meal.example_8': 'Bol de quinoa avec patates douces rôties, haricots noirs et maïs',
 
   // Results
   'results.scanned_product': 'Produit scanné',

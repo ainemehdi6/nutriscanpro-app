@@ -7,6 +7,7 @@ import { useI18n } from '@/hooks/useI18n';
 import Button from '@/components/Button';
 import Input from '@/components/Input';
 import { UserPlus } from 'lucide-react-native';
+import LanguageSelector from '@/components/LanguageSelector';
 
 export default function SignupScreen() {
   const [name, setName] = useState('');
@@ -82,6 +83,7 @@ export default function SignupScreen() {
         style={styles.keyboardView}
       >
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          <LanguageSelector compact />
           <View style={styles.header}>
             <View style={styles.iconContainer}>
               <UserPlus size={32} color="#22C55E" />

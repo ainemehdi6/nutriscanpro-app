@@ -67,10 +67,14 @@ export default function DescriptionScreen() {
   };
 
   const exampleDescriptions = [
-    "Grilled chicken breast with steamed broccoli and brown rice",
-    "Greek yogurt with mixed berries and granola",
-    "Caesar salad with grilled salmon and croutons",
-    "Peanut butter and banana sandwich on whole wheat bread",
+    t('add_meal.example_1'),
+    t('add_meal.example_2'),
+    t('add_meal.example_3'),
+    t('add_meal.example_4'),
+    t('add_meal.example_5'),
+    t('add_meal.example_6'),
+    t('add_meal.example_7'),
+    t('add_meal.example_8'),
   ];
 
   const handleExampleTap = (example: string) => {

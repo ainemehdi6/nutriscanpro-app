@@ -97,6 +97,14 @@ export interface TranslationKeys {
     'add_meal.missing_description': string;
     'add_meal.analysis_failed_description': string;
     'add_meal.description_analysis_failed': string;
+    'add_meal.example_1': string;
+    'add_meal.example_2': string;
+    'add_meal.example_3': string;
+    'add_meal.example_4': string;
+    'add_meal.example_5': string;
+    'add_meal.example_6': string;
+    'add_meal.example_7': string;
+    'add_meal.example_8': string;
 
     // Results
     'results.scanned_product': string;

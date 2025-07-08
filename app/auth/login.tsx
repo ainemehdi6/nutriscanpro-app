@@ -7,6 +7,7 @@ import { useI18n } from '@/hooks/useI18n';
 import Button from '@/components/Button';
 import Input from '@/components/Input';
 import { User } from 'lucide-react-native';
+import LanguageSelector from '@/components/LanguageSelector';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -60,6 +61,7 @@ export default function LoginScreen() {
         style={styles.keyboardView}
       >
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          <LanguageSelector compact />
           <View style={styles.header}>
             <View style={styles.iconContainer}>
               <User size={32} color="#22C55E" />

@@ -99,6 +99,14 @@ export const en: TranslationKeys = {
   'add_meal.missing_description': 'Please describe what you ate.',
   'add_meal.analysis_failed_description': 'Could not analyze your description. Please try again with more details.',
   'add_meal.description_analysis_failed': 'Failed to analyze your meal description. Please try again.',
+  'add_meal.example_1': 'Grilled chicken breast with steamed broccoli and brown rice',
+  'add_meal.example_2': 'Greek yogurt with mixed berries and granola',
+  'add_meal.example_3': 'Caesar salad with grilled salmon and croutons',
+  'add_meal.example_4': 'Peanut butter and banana sandwich on whole wheat bread',
+  'add_meal.example_5': 'Vegetable stir-fry with tofu and jasmine rice',
+  'add_meal.example_6': 'Omelette with spinach, tomatoes, and feta cheese',
+  'add_meal.example_7': 'Turkey and avocado wrap with a side of carrot sticks',
+  'add_meal.example_8': 'Quinoa bowl with roasted sweet potatoes, black beans, and corn',
 
   // Results
   'results.scanned_product': 'Scanned Product',
