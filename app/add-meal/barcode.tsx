@@ -33,6 +33,9 @@ export default function BarcodeScreen() {
       const result = await apiService.getFoodByBarcode(data);
 
       if (result.id) {
+        if (!result.quantity) {
+          result.quantity = 100;
+        }
         router.push({
           pathname: '/add-meal/results',
           params: {
